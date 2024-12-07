@@ -17,6 +17,7 @@ interface DropdownProps {
   onChange: (selected: Option[] | Option | null) => void;
   pageSize?: number;
   className?: string;
+  isDarkMode?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({

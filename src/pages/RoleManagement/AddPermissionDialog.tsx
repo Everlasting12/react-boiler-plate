@@ -1,6 +1,5 @@
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -13,7 +12,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CirclePlus, Trash2 } from 'lucide-react';
 import SecondaryButton from '../../my-components/SecondaryButton';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { usePermissionStore } from '../../store/usePermissionStore';
 
 const methods = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'];
@@ -84,6 +83,7 @@ type OutputObject = {
 };
 
 const AddPermissionDialog = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { addPermission } = usePermissionStore();
   const {
     control,
@@ -165,16 +165,14 @@ const AddPermissionDialog = () => {
     };
   }
 
-  useEffect(() => {
-    reset();
-  }, []);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>
         <SecondaryButton
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setIsModalOpen(true);
+            reset();
+          }}
           className="py-1 my-1"
           type="button"
           title="Permission"

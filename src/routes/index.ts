@@ -3,6 +3,9 @@ import { lazy } from 'react';
 const Permissions = lazy(() => import('../pages/RoleManagement/Permissions'));
 const Roles = lazy(() => import('../pages/RoleManagement/Roles'));
 const UserRoles = lazy(() => import('../pages/RoleManagement/UserRoles'));
+const Tasks = lazy(() => import('../pages/Tasks/Tasks'));
+const Project = lazy(() => import('../pages/Project/Project'));
+const Teams = lazy(() => import('../pages/Teams/Teams'));
 const Calendar = lazy(() => import('../pages/Calendar'));
 const Chart = lazy(() => import('../pages/Chart'));
 const FormElements = lazy(() => import('../pages/Form/FormElements'));
@@ -28,6 +31,21 @@ const coreRoutes = [
     path: '/user-roles',
     title: 'User Roles',
     component: UserRoles,
+  },
+  {
+    path: '/tasks',
+    title: 'Tasks',
+    component: Tasks,
+  },
+  {
+    path: '/projects',
+    title: 'Projects',
+    component: Project,
+  },
+  {
+    path: '/teams',
+    title: 'Teams',
+    component: Teams,
   },
   // {
   //   path: '/calendar',

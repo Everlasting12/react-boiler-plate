@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import Logo from '../../images/logo/logo.svg';
+import Logo from '../../images/logo/image.png';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
@@ -35,22 +35,22 @@ const SignIn = () => {
     <div className="h-screen dark:bg-boxdark-2">
       <div className="flex flex-wrap items-center h-full">
         <div className="hidden w-full xl:flex xl:items-center xl:justify-center xl:w-1/2 bg-slate-50 dark:bg-boxdark-2 h-full">
-          <div className="py-17.5 px-26 text-center">
-            <img className="hidden dark:block" src={Logo} alt="Logo" />
-            <p className="2xl:px-20 md:text-2xl">
+          <div className="py-17.5 px-26 text-center flex flex-col items-center gap-4">
+            <img className="hidden md:block md:w-31" src={Logo} alt="Logo" />
+            <p className="2xl:px-20 md:text-3xl font-medium">
               {import.meta.env.VITE_APP_NAME}
             </p>
-            <p className="2xl:px-20">your logo</p>
-
-            <span className="mt-15 inline-block"></span>
           </div>
         </div>
 
         <div className="w-full xl:w-1/2 h-full xl:flex xl:items-center">
           <div className="w-full p-4 sm:p-12.5 xl:p-17.5 h-full flex flex-col justify-center">
-            <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
-              Sign In to {import.meta.env.VITE_APP_NAME}
-            </h2>
+            <div className="w-full mb-10 flex gap-2 items-center justify-center">
+              <img className="flex h-18 md:hidden" src={Logo} alt="Logo" />
+              <h2 className="text-xl font-bold text-black dark:text-white">
+                Sign In to {import.meta.env.VITE_APP_NAME}
+              </h2>
+            </div>
 
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="mb-4">
@@ -61,7 +61,7 @@ const SignIn = () => {
                   <input
                     type="email"
                     {...register('username')}
-                    defaultValue={'sidheshlineup@gmail.com'}
+                    defaultValue={'pranaypc@gmail.com'}
                     placeholder="Enter your email"
                     className="w-full rounded-lg border text-black dark:text-white border-stroke bg-transparent py-3 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
@@ -80,7 +80,7 @@ const SignIn = () => {
                   <input
                     type={!showPassword ? 'password' : 'text'}
                     {...register('password')}
-                    defaultValue={'Sidhesh@123'}
+                    defaultValue={'Pranay@123'}
                     placeholder="Enter your password"
                     className="w-full rounded-lg border text-black dark:text-white border-stroke bg-transparent py-3 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
