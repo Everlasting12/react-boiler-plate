@@ -5,8 +5,9 @@ import {
   UserRoles as UserRolesType,
   UserRolesQuery,
 } from '../../types/useUserRolesStore.types';
+import AddUserRoleDialog from './AddUserRoleDialog';
 const UserRoles = () => {
-  const { fetchUserRoless, userRoles } = useUserRolesStore();
+  const { fetchUserRoles, userRoles } = useUserRolesStore();
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(10);
   const [query, _setQuery] = useState<UserRolesQuery>({
@@ -80,15 +81,17 @@ const UserRoles = () => {
   return (
     <>
       {/* <Breadcrumb pageName="UserRoles" /> */}
-      <div className="w-full max-w-full  rounded-md h-full ">
+      <div className="w-full max-w-full flex flex-col items-end rounded-md h-full">
+        <AddUserRoleDialog />
         <Table
+          name={'User roles'}
           columns={columns}
           total={userRoles.total}
           key={'user-roles-table'}
           query={query}
           pageable={true}
           data={userRoles.data}
-          fetch={fetchUserRoless}
+          fetch={fetchUserRoles}
           skip={skip}
           setSkip={setSkip}
           limit={limit}

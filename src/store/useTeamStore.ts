@@ -1,11 +1,17 @@
 import { create } from 'zustand';
-import { Team, TeamQuery, TeamStoreType } from '../types/useTeamStore.types';
+import {
+  MemberQuery,
+  Team,
+  TeamQuery,
+  TeamStoreType,
+} from '../types/useTeamStore.types';
 import API from '../common/api';
-import { TEAMS } from '../common/endpoints';
+import { TEAMS, USER_ROLES, USERS } from '../common/endpoints';
 import { replaceUrlParams } from '../common/utils';
 import toast from 'react-hot-toast';
+import { UserRolesQuery } from '../types/useUserRolesStore.types';
 
-export const useTeamStore = create<TeamStoreType>((set) => ({
+export const useTeamStore = create<TeamStoreType>((set, get) => ({
   teams: { data: [], limit: 10, skip: 0, total: 0 },
   fetchTeams: async (query: TeamQuery) => {
     try {
@@ -25,13 +31,55 @@ export const useTeamStore = create<TeamStoreType>((set) => ({
 
       if (res.status == 201) {
         toast.success('Team added successfully');
-        // return { message: 'Team added successfully', success: true };
+        return true;
       }
-      // return { message: 'Team could not be added!', success: false };
+      return false;
     } catch (error) {
       toast.error('Team could not be added!');
       console.log('🚀 ~ addTeam: ~ error:', error);
-      // return { message: 'Team could not be added!', success: false };
+      return false;
+    }
+  },
+  fetchMembers: async (query: MemberQuery) => {
+    try {
+      const { data } = await API.get(USERS, {
+        params: query,
+      });
+      return data;
+    } catch (error) {
+      console.log('🚀 ~ fetchMembers: ~ error:', error);
+      return { data: [], limit: query.limit, skip: query.skip, total: 0 };
+    }
+  },
+  fetchTeamLeads: async (query: UserRolesQuery) => {
+    try {
+      const { data } = await API.get(USER_ROLES, {
+        params: query,
+      });
+      return data;
+    } catch (error) {
+      console.log('🚀 ~ fetchTeamLeads: ~ error:', error);
+      return { data: [], limit: query.limit, skip: query.skip, total: 0 };
+    }
+  },
+  showMembers: async (teamId: string) => {
+    try {
+      const res = await API.get(
+        replaceUrlParams(`${TEAMS}/:teamId/members`, { teamId }),
+      );
+      const currentTeams = get().teams;
+      const newTeams = currentTeams.data.map((t) =>
+        t.id == teamId
+          ? {
+              ...t,
+              membersData: res.data?.data,
+            }
+          : t,
+      );
+      currentTeams.data = newTeams;
+      set({ teams: currentTeams });
+    } catch (error) {
+      console.log('🚀 ~ fetchTeams: ~ error:', error);
     }
   },
 }));

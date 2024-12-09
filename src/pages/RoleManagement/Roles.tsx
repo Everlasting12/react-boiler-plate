@@ -76,6 +76,7 @@ const Roles = () => {
           setSkip={setSkip}
           limit={limit}
           setLimit={setLimit}
+          name={'Roles'}
         />
       </div>
     </>

@@ -24,11 +24,14 @@ export type CreatedBy = {
 export interface ProjectQuery extends Query {
   name?: string[];
   isDefault?: boolean;
-  relation?: boolean;
 }
 
 export interface ProjectStoreType {
   projects: Data<Project>;
   fetchProjects: (query: ProjectQuery) => void;
-  addProject: (payload: Project) => void;
+  addProject: (payload: Project) => Promise<boolean | undefined>;
+  editProject: (
+    projectId: string,
+    payload: Project,
+  ) => Promise<boolean | undefined>;
 }

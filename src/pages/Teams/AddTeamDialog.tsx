@@ -6,50 +6,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../../my-components/Modal';
-
-import DatePicker from 'react-datepicker';
+import AsyncSelect from 'react-select/async';
 
 import 'react-datepicker/dist/react-datepicker.css';
-
+import Select, { SingleValue } from 'react-select';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CirclePlus } from 'lucide-react';
 import SecondaryButton from '../../my-components/SecondaryButton';
 import { useEffect, useState } from 'react';
-import { useProjectStore } from '../../store/useProjectStore';
-import {
-  ProjectCategory,
-  ProjectPriority,
-  ProjectStatus,
-} from '../../common/enums';
 import { ProjectQuery } from '../../types/useProjectStore.types';
+import { useTeamStore } from '../../store/useTeamStore';
+import {
+  darkModeStyles,
+  lightModeStyles,
+} from '../../common/react-select.styles';
+import { useCommonStore } from '../../store/useCommonStore';
+import { useProjectStore } from '../../store/useProjectStore';
+import { UserRolesQuery } from '../../types/useUserRolesStore.types';
 
 const validationSchema = yup.object().shape({
-  name: yup.string().required('title is required'),
-  description: yup.string().required('Description is required'),
-  // status: yup
-  //   .mixed()
-  //   .oneOf(Object.values(TaskStatus))
-  //   .required('Status is required'),
-  priority: yup
-    .mixed()
-    .oneOf(Object.keys(ProjectPriority))
-    .required('Priority is required'),
-  category: yup
-    .mixed()
-    .oneOf(Object.keys(ProjectCategory))
-    .required('Category is required'),
-  startDate: yup
-    .date()
-    .required('Start Date is required')
-    .typeError('Invalid date'),
+  name: yup.string().required('Team name is required'),
+  projectId: yup.string().required('Project is required'),
+  members: yup
+    .array()
+    .typeError('Members are required')
+    .required('Members are required')
+    .min(1, 'At least 1 member should be added in the team'),
+  teamLeadId: yup
+    .object()
+    .typeError('Team lead is required')
+    .required('Team lead is required'),
 });
 
 type Props = { query: ProjectQuery; skip: number; limit: number };
 
-const AddProjectDialog = ({ limit, query, skip }: Props) => {
-  const { addProject, fetchProjects } = useProjectStore();
+const AddProjectDialog = ({ query, skip, limit }: Props) => {
+  const { isDarkMode } = useCommonStore();
+  const { fetchMembers, fetchTeamLeads, addTeam, fetchTeams } = useTeamStore();
+  const { fetchProjects, projects } = useProjectStore();
   const {
     control,
     register,
@@ -59,25 +55,65 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: 'onChange',
-    defaultValues: {
-      priority: ProjectPriority.MEDIUM.toUpperCase(),
-      category: ProjectCategory.A.toUpperCase(),
-    },
   });
 
-  const onSubmit = (data: any) => {
-    data.status = ProjectStatus.NEW.toUpperCase();
-    data.createdById = 'f89749ce-a94e-4c4f-bb37-c19b32d7fe9b';
-    addProject(data);
-    reset();
-    setIsModalOpen(false);
+  const onSubmit = async (data: any) => {
+    const { members, teamLeadId } = data;
+    data.members = members.map((m: { value: string }) => m.value);
+    data.teamLeadId = teamLeadId.value;
+    console.log('🚀 ~ onSubmit ~ data:', data);
+    const success = await addTeam(data);
+    if (success) {
+      reset();
+      setIsModalOpen(false);
 
-    query.skip = skip;
-    query.limit = limit;
-    fetchProjects(query);
+      query.skip = skip;
+      query.limit = limit;
+      fetchTeams(query);
+    }
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const loadMembersOptions = async (inputValue: string = '') => {
+    const query: any = {
+      paginate: false,
+      relation: true,
+      select: ['userId', 'name', 'email'],
+    };
+    if (inputValue) query['name'] = inputValue;
+    const data = await fetchMembers(query);
+    const formattedOptions = data.data.map((option) => ({
+      value: option.userId,
+      label: `${option.name} ( ${option.email} )`,
+    }));
+
+    return formattedOptions;
+  };
+  const loadTeamLeadsOptions = async (inputValue: string = '') => {
+    const query: UserRolesQuery = {
+      paginate: false,
+      roleId: ['TEAM_LEAD'],
+      relation: true,
+    };
+    const data = await fetchTeamLeads(query);
+    const formattedOptions = data.data.map((option) => ({
+      value: option.userId,
+      label: `${option?.user?.name} ( ${option?.user?.email} )`,
+    }));
+
+    return formattedOptions;
+  };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      fetchProjects({
+        paginate: false,
+        select: ['projectId', 'name'],
+      });
+    }
+  }, [isModalOpen]);
+
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>
@@ -88,15 +124,15 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
           }}
           className="py-1 my-1"
           type="button"
-          title="Add New Project"
+          title="Add New Team"
           icon={<CirclePlus size={15} />}
         />
       </DialogTrigger>
       <DialogContent className="w-[95%] md:w-1/2 bg-white dark:bg-slate-900 text-black dark:text-white shadow-xl border-0">
         <DialogHeader>
-          <DialogTitle>Add New Project</DialogTitle>
+          <DialogTitle>Add New Team</DialogTitle>
           <DialogDescription className="text-xs">
-            Add your project and Click save when you're done.
+            Add your team and Click save when you're done.
           </DialogDescription>
         </DialogHeader>
 
@@ -105,104 +141,97 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
           className="overflow-y-auto h-[calc(100vh-50vh)] max-h-[calc(100vh-30%)] scrollbar md:px-5 flex flex-col gap-2 text-xs"
         >
           <div className="flex flex-col">
-            <label className="text-xs">Project Name:</label>
+            <label className="text-xs">Team Name:</label>
             <input
               className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
               {...register('name')}
-              placeholder="Enter Project Name"
+              placeholder="Enter Team Name"
             />
             <p className="text-red-500 text-[9px]">{errors?.name?.message}</p>
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs">Description:</label>
-            <input
-              className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
-              {...register('description')}
-              placeholder="Enter description"
-            />
-            <p className="text-red-500 text-[9px]">
-              {errors?.description?.message}
-            </p>
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs">Start Date:</label>
+            <label className="text-xs">Project:</label>
             <Controller
-              name="startDate"
+              name="projectId"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  className="w-full px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
+                <select
                   {...field}
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date: Date | null) => field.onChange(date)}
-                  dateFormat="yyyy/MM/dd"
+                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                  defaultValue={projects?.data?.at(0)?.projectId}
+                >
+                  {projects?.data?.map((p) => (
+                    <option key={p.projectId} value={p.projectId}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            <p className="text-red-500 text-[9px]">
+              {errors?.projectId?.message}
+            </p>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs">Team Lead:</label>
+            <Controller
+              name="teamLeadId"
+              control={control}
+              render={({ field }) => (
+                <AsyncSelect
+                  {...field}
+                  cacheOptions
+                  defaultOptions
+                  loadOptions={loadTeamLeadsOptions as any}
+                  styles={isDarkMode ? darkModeStyles : lightModeStyles}
+                  placeholder={
+                    <span className="text-slate-500">Select team lead</span>
+                  }
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  onChange={(selected) => {
+                    console.log('🚀 ~ AddProjectDialog ~ selected:', selected);
+
+                    field.onChange(selected);
+                  }}
                 />
               )}
             />
             <p className="text-red-500 text-[9px]">
-              {errors?.startDate?.message}
-            </p>
-          </div>
-          {/* <div className="flex flex-col">
-            <label className="text-xs">Status:</label>
-            <Controller
-              name="status"
-              control={control}
-              render={({ field }) => (
-                <select {...field}>
-                  {Object.values(TaskStatus).map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-            <p className="text-red-500 text-[9px]">{errors?.status?.message}</p>
-          </div> */}
-          <div className="flex flex-col">
-            <label className="text-xs">Category:</label>
-            <Controller
-              name="category"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
-                >
-                  {Object.entries(ProjectCategory).map(([key, category]) => (
-                    <option key={category} value={key}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-            <p className="text-red-500 text-[9px]">
-              {errors?.category?.message}
+              {errors?.teamLeadId?.message}
             </p>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs">Priority:</label>
+            <label className="text-xs">Members:</label>
             <Controller
-              name="priority"
+              name="members"
+              defaultValue={[]}
               control={control}
               render={({ field }) => (
-                <select
+                <AsyncSelect
                   {...field}
-                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
-                >
-                  {Object.entries(ProjectPriority).map(([key, priority]) => (
-                    <option key={priority} value={key}>
-                      {priority}
-                    </option>
-                  ))}
-                </select>
+                  cacheOptions
+                  defaultOptions
+                  isMulti
+                  loadOptions={loadMembersOptions as any}
+                  styles={isDarkMode ? darkModeStyles : lightModeStyles}
+                  placeholder={
+                    <span className="text-slate-500">Select members</span>
+                  }
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  onChange={(selected) => {
+                    console.log('🚀 ~ AddProjectDialog ~ selected:', selected);
+
+                    field.onChange(selected);
+                  }}
+                />
               )}
             />
             <p className="text-red-500 text-[9px]">
-              {errors?.priority?.message}
+              {errors?.members?.message}
             </p>
           </div>
 
@@ -210,7 +239,7 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
             type="submit"
             className="p-2 my-2 bg-primary hover:bg-primary/90 rounded-md text-white"
           >
-            Save Project
+            Save Team
           </button>
         </form>
       </DialogContent>

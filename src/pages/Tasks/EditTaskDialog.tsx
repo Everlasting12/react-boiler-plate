@@ -4,23 +4,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../../my-components/Modal';
 
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CirclePlus } from 'lucide-react';
-import SecondaryButton from '../../my-components/SecondaryButton';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useTaskStore } from '../../store/useTasksStore';
-import {
-  AccessMethods,
-  AccessModules,
-  TaskPriority,
-  TaskStatus,
-} from '../../common/enums';
-import renderWithAccessControl from '../../common/access-control';
+import { TaskPriority, TaskStatus } from '../../common/enums';
 import { useProjectStore } from '../../store/useProjectStore';
 import {
   darkModeStyles,
@@ -29,8 +20,7 @@ import {
 import AsyncSelect from 'react-select/async';
 import { useCommonStore } from '../../store/useCommonStore';
 import { useTeamStore } from '../../store/useTeamStore';
-import { TaskQuery } from '../../types/useTasksStore.types';
-import { useLoginStore } from '../../store/useLoginStore';
+import { Task, TaskQuery } from '../../types/useTasksStore.types';
 
 const validationSchema = yup.object().shape({
   title: yup.string().required('title is required'),
@@ -41,6 +31,10 @@ const validationSchema = yup.object().shape({
     .mixed()
     .oneOf(Object.keys(TaskPriority))
     .required('Priority is required'),
+  status: yup
+    .mixed()
+    .oneOf(Object.keys(TaskStatus))
+    .required('Status is required'),
   dueTime: yup
     .number()
     .typeError('Due time should in seconds')
@@ -52,15 +46,29 @@ const validationSchema = yup.object().shape({
     .required('Assignee is required'),
 });
 
-type Props = { query: TaskQuery; skip: number; limit: number };
+type Props = {
+  query: TaskQuery;
+  skip: number;
+  limit: number;
+  isEditModalOpen: boolean;
+  setIsEditModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  task: Task | undefined;
+};
 
-const AddTaskDialog = ({ query, skip, limit }: Props) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const EditTaskDialog = ({
+  limit,
+  query,
+  skip,
+  isEditModalOpen,
+  setIsEditModalOpen,
+  task,
+}: Props) => {
   const { isDarkMode } = useCommonStore();
-  const { addTask, fetchTasks } = useTaskStore();
+  const { editTask, fetchTasks } = useTaskStore();
   const { fetchMembers } = useTeamStore();
   const { fetchProjects, projects } = useProjectStore();
   const {
+    setValue,
     control,
     register,
     handleSubmit,
@@ -72,93 +80,106 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
   });
 
   const onSubmit = async (data: any) => {
-    data.status = TaskStatus.NEW.toUpperCase();
-    data.assignedToId = data.assignedToId.value;
+    const payload = {
+      ...data,
+    };
+    payload.assignedToId = data.assignedToId.value;
+    console.log('🚀 ~ onSubmit ~ payload:', payload);
+    // const { projectId, ...rest } = data;
 
-    const { projectId, ...rest } = data;
+    // const success = await editTask(projectId, rest);
 
-    const success = await addTask(projectId, rest);
+    // console.log('🚀 ~ onSubmit ~ success:', success);
+    // if (success) {
+    //   reset();
+    //   setIsModalOpen(false);
 
-    if (success) {
-      reset();
-      setIsModalOpen(false);
+    //   query.skip = skip;
+    //   query.limit = limit;
+    //   fetchTasks(query);
+    // }
 
-      query.skip = skip;
-      query.limit = limit;
-      fetchTasks(query);
+    if (task) {
+      console.log('🚀 ~ onSubmit ~ task:', task);
+
+      const updatedFields = Object.keys(payload).reduce((acc, key) => {
+        if (payload[key] !== task[key as keyof Task]) {
+          acc[key] = payload[key];
+        }
+        return acc;
+      }, {} as any);
+      console.log('updatedFields --------------->>', updatedFields);
     }
   };
 
   useEffect(() => {
-    if (isModalOpen) {
+    if (isEditModalOpen) {
       reset();
       fetchProjects({
         paginate: false,
         select: ['projectId', 'name'],
       });
     }
-  }, [isModalOpen]);
+  }, [isEditModalOpen]);
 
-  const { authenticatedUserRoleId, user } = useLoginStore();
   const loadMembersOptions = async (inputValue: string = '') => {
     const query: any = {
       paginate: false,
       relation: true,
-      // select: ['userId', 'name', 'email'],
     };
     if (inputValue) query['name'] = inputValue;
+    const data = await fetchMembers(query);
+    const formattedOptions = data.data.map((option) => {
+      const role = option['userRole']?.at(0)?.role?.name ?? '';
+      return {
+        value: option.userId,
+        label: `${option.name}${role ? ` (${role})` : ''}`,
+      };
+    });
 
-    let formattedOptions;
-
-    if (!['TEAM_LEAD', 'DIRECTOR'].includes(authenticatedUserRoleId)) {
-      formattedOptions = [
-        {
-          value: user?.userId!,
-          label: `${user?.name}`,
-        },
-      ];
-    } else {
-      const data = await fetchMembers(query);
-      formattedOptions = data.data.map((option) => {
-        const role = option['userRole']?.at(0)?.role?.name ?? '';
-        return {
-          value: option.userId,
-          label: `${option.name} ${role ? `(${role})` : ''} `,
-        };
-      });
-    }
-
+    if (task)
+      setValue(
+        'assignedToId',
+        formattedOptions.filter((f) => f.value == task.assignedToId).at(0)!,
+      );
+    //
     return formattedOptions;
   };
 
-  return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      {renderWithAccessControl(
-        <DialogTrigger asChild>
-          <SecondaryButton
-            onClick={() => setIsModalOpen(true)}
-            className="py-1 my-1"
-            type="button"
-            title="Add New Task"
-            icon={<CirclePlus size={15} />}
-          />
-        </DialogTrigger>,
-        AccessModules.TASKS,
-        AccessMethods.UPDATE,
-        '',
-      )}
+  useEffect(() => {
+    if (task && isEditModalOpen) {
+      const {
+        projectId,
+        status,
+        priority,
+        description,
+        drawingTitle,
+        dueTime,
+        title,
+      } = task;
+      setValue('title', title);
+      setValue('description', description);
+      setValue('priority', priority);
+      setValue('dueTime', dueTime);
+      setValue('drawingTitle', drawingTitle);
+      setValue('projectId', projectId);
+      setValue('status', status);
+    }
+  }, [task, isEditModalOpen]);
 
-      <DialogContent className="w-[95%] md:w-1/2 bg-white dark:bg-slate-900 text-black dark:text-white shadow-xl border-0">
+  return (
+    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+      <DialogContent className="w-[95%] md:w-1/2 h-fit bg-white dark:bg-slate-900 text-black dark:text-white shadow-xl border-0">
         <DialogHeader>
-          <DialogTitle>Add Task</DialogTitle>
+          <DialogTitle>Edit Task</DialogTitle>
           <DialogDescription className="text-xs">
-            Add your task and Click save when you're done.
+            edit your task and Click save when you're done.
           </DialogDescription>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="overflow-y-auto h-[calc(100vh-50vh)] max-h-[calc(100vh-30%)] scrollbar md:px-5 flex flex-col gap-2 text-xs"
+          className="overflow-y-auto max-h-[calc(100vh-30%)] scrollbar md:px-5 flex flex-col gap-2 text-xs"
         >
           <div className="flex flex-col">
             <label className="text-xs">Task Title:</label>
@@ -242,6 +263,26 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
           </div>
 
           <div className="flex flex-col">
+            <label className="text-xs">Status:</label>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <select
+                  {...field}
+                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                >
+                  {Object.entries(TaskStatus).map(([key, status]) => (
+                    <option key={key} value={key}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            <p className="text-red-500 text-[9px]">{errors?.status?.message}</p>
+          </div>
+          <div className="flex flex-col">
             <label className="text-xs">Priority:</label>
             <Controller
               name="priority"
@@ -288,4 +329,4 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
   );
 };
 
-export default AddTaskDialog;
+export default EditTaskDialog;

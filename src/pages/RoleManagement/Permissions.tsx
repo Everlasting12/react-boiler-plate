@@ -68,6 +68,7 @@ const Permissions = () => {
         <AddPermissionDialog />
 
         <Table
+          name={'Permissions'}
           columns={columns}
           total={permissions.total}
           key={'permission-table'}

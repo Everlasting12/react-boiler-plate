@@ -34,6 +34,7 @@ export type CreatedBy = {
 
 export interface Project {
   name: string;
+  category?: string;
 }
 
 export interface TaskQuery extends Query {
@@ -41,10 +42,17 @@ export interface TaskQuery extends Query {
   isDefault?: boolean;
   relation?: boolean;
   projectId?: string;
+  createdById?: string;
 }
 
 export interface TaskStoreType {
   tasks: Data<Task>;
   fetchTasks: (query: TaskQuery) => void;
-  addTask: (payload: Task) => void;
+  addTask: (projectId: string, payload: Task) => Promise<boolean | undefined>;
+  editTask: (
+    taskId: string,
+    projectId: string,
+    payload: Partial<Task>,
+  ) => Promise<boolean | undefined>;
+  sendTaskToTeamLead: (taskId: string, projectId: string) => void;
 }

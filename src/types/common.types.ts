@@ -10,4 +10,6 @@ export interface Query {
   skip?: number;
   limit?: number;
   isActive?: boolean;
+  relation?: boolean;
+  select?: string[];
 }

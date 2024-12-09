@@ -4,34 +4,28 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../../my-components/Modal';
-
 import DatePicker from 'react-datepicker';
-
 import 'react-datepicker/dist/react-datepicker.css';
-
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CirclePlus } from 'lucide-react';
-import SecondaryButton from '../../my-components/SecondaryButton';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import {
   ProjectCategory,
   ProjectPriority,
   ProjectStatus,
 } from '../../common/enums';
-import { ProjectQuery } from '../../types/useProjectStore.types';
+import { Project, ProjectQuery } from '../../types/useProjectStore.types';
 
 const validationSchema = yup.object().shape({
   name: yup.string().required('title is required'),
   description: yup.string().required('Description is required'),
-  // status: yup
-  //   .mixed()
-  //   .oneOf(Object.values(TaskStatus))
-  //   .required('Status is required'),
+  status: yup
+    .mixed()
+    .oneOf(Object.keys(ProjectStatus))
+    .required('Status is required'),
   priority: yup
     .mixed()
     .oneOf(Object.keys(ProjectPriority))
@@ -46,59 +40,72 @@ const validationSchema = yup.object().shape({
     .typeError('Invalid date'),
 });
 
-type Props = { query: ProjectQuery; skip: number; limit: number };
+type Props = {
+  query: ProjectQuery;
+  skip: number;
+  limit: number;
+  isEditModalOpen: boolean;
+  setIsEditModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  project: Project | undefined;
+};
 
-const AddProjectDialog = ({ limit, query, skip }: Props) => {
-  const { addProject, fetchProjects } = useProjectStore();
+const EditProjectDialog = ({
+  limit,
+  query,
+  skip,
+  isEditModalOpen,
+  setIsEditModalOpen,
+  project,
+}: Props) => {
+  const { editProject, fetchProjects } = useProjectStore();
   const {
     control,
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: 'onChange',
-    defaultValues: {
-      priority: ProjectPriority.MEDIUM.toUpperCase(),
-      category: ProjectCategory.A.toUpperCase(),
-    },
   });
 
   const onSubmit = async (data: any) => {
-    data.status = ProjectStatus.NEW.toUpperCase();
-    const success = await addProject(data);
+    console.log('🚀 ~ onSubmit ~ data:', data);
+    if (project?.projectId) {
+      const success = await editProject(project?.projectId, data);
 
-    if (success) {
-      reset();
-      setIsModalOpen(false);
+      if (success) {
+        reset();
+        setIsEditModalOpen(false);
 
-      query.skip = skip;
-      query.limit = limit;
-      fetchProjects(query);
+        query.skip = skip;
+        query.limit = limit;
+        fetchProjects(query);
+      }
     }
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  useEffect(() => {
+    if (project) {
+      const { category, status, priority, name, description, startDate } =
+        project;
+      setValue('name', name);
+      setValue('category', category);
+      setValue('description', description);
+      setValue('priority', priority);
+      setValue('startDate', new Date(startDate));
+      setValue('status', status);
+    }
+  }, [project]);
+
   return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogTrigger asChild>
-        <SecondaryButton
-          onClick={() => {
-            setIsModalOpen(true);
-            reset();
-          }}
-          className="py-1 my-1"
-          type="button"
-          title="Add New Project"
-          icon={<CirclePlus size={15} />}
-        />
-      </DialogTrigger>
+    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
       <DialogContent className="w-[95%] md:w-1/2 bg-white dark:bg-slate-900 text-black dark:text-white shadow-xl border-0">
         <DialogHeader>
-          <DialogTitle>Add New Project</DialogTitle>
+          <DialogTitle>Edit Project</DialogTitle>
           <DialogDescription className="text-xs">
-            Add your project and Click save when you're done.
+            edit your project and Click save when you're done.
           </DialogDescription>
         </DialogHeader>
 
@@ -134,9 +141,10 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
               control={control}
               render={({ field }) => (
                 <DatePicker
-                  placeholderText="Select start date"
-                  className="w-full px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
+                  className="w-full px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent disabled:dark:bg-slate-800  disabled:cursor-not-allowed"
                   {...field}
+                  placeholderText="Select start date"
+                  disabled
                   selected={field.value ? new Date(field.value) : null}
                   onChange={(date: Date | null) => field.onChange(date)}
                   dateFormat="yyyy/MM/dd"
@@ -147,15 +155,18 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
               {errors?.startDate?.message}
             </p>
           </div>
-          {/* <div className="flex flex-col">
+          <div className="flex flex-col">
             <label className="text-xs">Status:</label>
             <Controller
               name="status"
               control={control}
               render={({ field }) => (
-                <select {...field}>
-                  {Object.values(TaskStatus).map((status) => (
-                    <option key={status} value={status}>
+                <select
+                  {...field}
+                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                >
+                  {Object.entries(ProjectStatus).map(([key, status]) => (
+                    <option key={status} value={key}>
                       {status}
                     </option>
                   ))}
@@ -163,7 +174,7 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
               )}
             />
             <p className="text-red-500 text-[9px]">{errors?.status?.message}</p>
-          </div> */}
+          </div>
           <div className="flex flex-col">
             <label className="text-xs">Category:</label>
             <Controller
@@ -221,4 +232,4 @@ const AddProjectDialog = ({ limit, query, skip }: Props) => {
   );
 };
 
-export default AddProjectDialog;
+export default EditProjectDialog;

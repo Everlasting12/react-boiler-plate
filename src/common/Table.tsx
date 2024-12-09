@@ -28,6 +28,7 @@ export interface TableType<T> {
   fetch?: (query: any) => void;
   query?: any;
   total: number;
+  name: string;
 }
 
 function Table<T>(props: TableType<T>) {
@@ -44,6 +45,7 @@ function Table<T>(props: TableType<T>) {
     fetch,
     query,
     total,
+    name,
   } = props;
 
   useEffect(() => {
@@ -100,6 +102,7 @@ function Table<T>(props: TableType<T>) {
           skip={skip}
           setSkip={setSkip}
           total={total}
+          name={name}
         />
       )}
     </div>

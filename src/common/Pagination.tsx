@@ -11,9 +11,17 @@ type PropsType = {
   setLimit: React.Dispatch<React.SetStateAction<number>>;
   limit: number;
   total: number;
+  name: string;
 };
 
-const Pagination = ({ setSkip, skip, setLimit, limit, total }: PropsType) => {
+const Pagination = ({
+  setSkip,
+  skip,
+  setLimit,
+  limit,
+  total,
+  name,
+}: PropsType) => {
   const totalPages = Math.ceil(total / limit); // Total number of pages
   const currentPage = Math.floor(skip / limit) + 1; // Current page index
 
@@ -44,8 +52,8 @@ const Pagination = ({ setSkip, skip, setLimit, limit, total }: PropsType) => {
   return (
     <div className="w-full py-2 flex mt-2 items-center justify-between">
       {/* Rows per page selector */}
-      <div className="flex flex-col lg:flex lg:flex-row gap-3">
-        <span>Rows per page</span>
+      <div className="flex flex-col lg:flex lg:flex-row gap-3 items-center">
+        <span className="text-sm">Rows per page</span>
         <select
           name="rowsPerPage"
           className="rounded-md px-2 h-8 bg-slate-200 dark:bg-boxdark-2 cursor-pointer"
@@ -62,6 +70,9 @@ const Pagination = ({ setSkip, skip, setLimit, limit, total }: PropsType) => {
             </option>
           ))}
         </select>
+        <span className="px-4 py-1.5 text-sm rounded-md bg-slate-200 dark:bg-boxdark-2">
+          Total {name}: {total}
+        </span>
       </div>
 
       {/* Pagination controls */}

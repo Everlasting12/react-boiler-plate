@@ -84,6 +84,25 @@ export enum ProjectCategory {
   'AA++' = 'AA+',
 }
 
+export const ProjectCategoryColors = {
+  A: {
+    text: 'text-white',
+    bg: 'bg-sky-200', // Blue represents a fresh or new task
+  },
+  'A+': {
+    text: 'text-white',
+    bg: 'bg-sky-400', // Yellow represents active work or ongoing progress
+  },
+  AA: {
+    text: 'text-white',
+    bg: 'bg-sky-600', // Green represents a successfully completed task
+  },
+  'AA++': {
+    text: 'text-white',
+    bg: 'bg-sky-800', // Gray represents tasks that are paused or pending
+  },
+};
+
 export enum AccessModules {
   ACCESS_CONTROL = 'ACCESS_CONTROL',
   PERMISSIONS = 'PERMISSIONS',

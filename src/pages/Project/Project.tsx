@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import Table, { ColumnDef } from '../../common/Table';
 import { useProjectStore } from '../../store/useProjectStore';
-import { ProjectQuery } from '../../types/useProjectStore.types';
+import {
+  Project as ProjectType,
+  ProjectQuery,
+} from '../../types/useProjectStore.types';
 import AddProjectDialog from './AddProjectDialog';
 import dayjs from 'dayjs';
 import { ProjectStatus, ProjectStatusColors } from '../../common/enums';
+import { Pencil } from 'lucide-react';
+import EditProjectDialog from './EditProjectDialog';
+
 const Project = () => {
   const { fetchProjects, projects } = useProjectStore();
   const [skip, setSkip] = useState(0);
@@ -14,6 +20,9 @@ const Project = () => {
     isActive: true,
     relation: true,
   });
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [project, setProject] = useState<undefined | ProjectType>(undefined);
   const columns: ColumnDef[] = [
     {
       key: 'sr_no',
@@ -85,6 +94,22 @@ const Project = () => {
       type: 'element',
       render: (row) => <>{row?.isActive ? 'Yes' : 'No'}</>,
     },
+    {
+      key: 'Action',
+      label: 'Action',
+      type: 'element',
+      render: (row) => (
+        <button
+          onClick={() => {
+            setIsEditModalOpen(true);
+            setProject(row);
+          }}
+          className="p-2 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
+        >
+          <Pencil size={15} />
+        </button>
+      ),
+    },
   ];
 
   return (
@@ -92,6 +117,14 @@ const Project = () => {
       {/* <Breadcrumb pageName="Project" /> */}
       <div className="w-full max-w-full flex flex-col items-end rounded-md h-full">
         <AddProjectDialog query={query} skip={skip} limit={limit} />
+        <EditProjectDialog
+          query={query}
+          skip={skip}
+          limit={limit}
+          isEditModalOpen={isEditModalOpen}
+          setIsEditModalOpen={setIsEditModalOpen}
+          project={project}
+        />
 
         <Table
           columns={columns}
@@ -105,6 +138,7 @@ const Project = () => {
           setSkip={setSkip}
           limit={limit}
           setLimit={setLimit}
+          name={'Projects'}
         />
       </div>
     </>

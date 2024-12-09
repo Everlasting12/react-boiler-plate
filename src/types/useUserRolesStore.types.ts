@@ -17,11 +17,20 @@ export type UserRoles = {
 
 export interface UserRolesQuery extends Query {
   name?: string[];
+  roleId?: string[];
+  isDefault?: boolean;
+  relation?: boolean;
+}
+export interface UserQuery extends Query {
+  name?: string[];
+  roleId?: string[];
   isDefault?: boolean;
   relation?: boolean;
 }
 
 export interface UserRolesStoreType {
   userRoles: Data<UserRoles>;
-  fetchUserRoless: (query: UserRolesQuery) => void;
+  fetchUserRoles: (query: UserRolesQuery) => void;
+  fetchUsers: (query: UserQuery) => void;
+  addUserRoles: (payload: UserRoles) => Promise<boolean | undefined>;
 }

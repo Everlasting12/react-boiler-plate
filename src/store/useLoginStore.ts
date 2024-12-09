@@ -8,7 +8,7 @@ import { User } from '../types/user.types';
 type initialAuthObjType = {
   isAuthenticated: boolean;
   authenticatedUserRoleId: string;
-  user: User | {};
+  user: User | undefined;
   token: string;
   feScopes: string[];
   loggedInUserId: string;
@@ -16,7 +16,7 @@ type initialAuthObjType = {
 let initialAuthObj: initialAuthObjType = {
   isAuthenticated: false,
   authenticatedUserRoleId: '',
-  user: {},
+  user: undefined,
   token: '',
   feScopes: [],
   loggedInUserId: '',
@@ -67,6 +67,7 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
           loggedInUserId: user?.userId,
           isAuthenticated: true,
           token: accessToken,
+          user,
         });
         return true;
       }
@@ -98,8 +99,8 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
     const isAuthenticated = getAuthStatus === 'true';
     const feScopes = getFeScopes ? JSON.parse(getFeScopes) : [];
     const user = Cookies.get('user')
-      ? JSON.stringify(Cookies.get('user')!)
-      : {};
+      ? JSON.parse(Cookies.get('user')!)
+      : undefined;
     const loggedInUserId = Cookies.get('loggedInUserId');
 
     set(() => ({

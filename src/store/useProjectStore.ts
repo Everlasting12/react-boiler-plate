@@ -16,6 +16,7 @@ export const useProjectStore = create<ProjectStoreType>((set) => ({
       const res = await API.get(replaceUrlParams(PROJECTS, query), {
         params: query,
       });
+
       set({ projects: res.data });
     } catch (error) {
       console.log('🚀 ~ fetchProjects: ~ error:', error);
@@ -29,13 +30,28 @@ export const useProjectStore = create<ProjectStoreType>((set) => ({
 
       if (res.status == 201) {
         toast.success('Project added successfully');
-        // return { message: 'Project added successfully', success: true };
+        return true;
       }
-      // return { message: 'Project could not be added!', success: false };
+      return false;
     } catch (error) {
       toast.error('Project could not be added!');
       console.log('🚀 ~ addProject: ~ error:', error);
-      // return { message: 'Project could not be added!', success: false };
+      return false;
+    }
+  },
+  editProject: async (projectId: string, payload: Project) => {
+    try {
+      const res = await API.patch(`${PROJECTS}/${projectId}`, payload);
+
+      if (res.status == 200) {
+        toast.success('Project edited successfully');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error('Project could not be edited!');
+      console.log('🚀 ~ editProject: ~ error:', error);
+      return false;
     }
   },
 }));

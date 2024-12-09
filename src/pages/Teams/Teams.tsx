@@ -6,7 +6,7 @@ import AddTeamDialog from './AddTeamDialog';
 import dayjs from 'dayjs';
 
 const Teams = () => {
-  const { fetchTeams, teams } = useTeamStore();
+  const { fetchTeams, teams, showMembers } = useTeamStore();
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(10);
   const [query, _setQuery] = useState<TeamQuery>({
@@ -26,33 +26,56 @@ const Teams = () => {
       type: 'text',
     },
     {
-      key: 'description',
-      label: 'Description',
+      key: 'project',
+      label: 'Project',
       type: 'element',
-      render: (row) => <p className="max-w-[200px]">{row?.description}</p>,
+      render: (row) => <p className="max-w-[200px]">{row?.project?.name}</p>,
     },
     {
-      key: 'priority',
-      label: 'Priority',
-      type: 'text',
+      key: 'members',
+      label: 'Members',
+      type: 'element',
+      render: (row) => (
+        <div className="flex flex-col items-start">
+          {row?.members?.length && !row?.membersData ? (
+            <button
+              onClick={() => showMembers(row.id)}
+              className="bg-slate-300 px-2 py-0.5 rounded-md text-black hover:bg-slate-200 dark:bg-black dark:text-white hover:dark:bg-slate-800"
+            >
+              Show Members
+            </button>
+          ) : (
+            row?.membersData?.map((m) => (
+              <span
+                key={m.userId}
+                className="py-0.5 px-2 my-0.5 bg-white dark:bg-slate-900/50 rounded-md"
+              >
+                {m.name} ({m.email})
+              </span>
+            ))
+          )}
+        </div>
+        // <p className="max-w-[200px]">{JSON.stringify(row?.members)}</p>
+      ),
     },
     {
-      key: 'category',
-      label: 'Category',
-      type: 'text',
+      key: 'teamLeadId',
+      label: 'Team lead',
+      type: 'element',
+      render: (row) => (
+        <span>
+          {row?.teamLead?.name} <br /> ({row?.teamLead?.email})
+        </span>
+      ),
     },
     {
       key: 'createdBy',
       label: 'Created By',
       type: 'element',
-      render: (row) => <span>{row?.createdBy?.name}</span>,
-    },
-    {
-      key: 'startDate',
-      label: 'Started on',
-      type: 'element',
       render: (row) => (
-        <span>{dayjs(row?.startDate).format('DD MMM YYYY')}</span>
+        <span>
+          {row?.createdBy?.name} <br /> ({row?.createdBy?.email})
+        </span>
       ),
     },
     {
@@ -63,12 +86,6 @@ const Teams = () => {
         <span>{dayjs(row?.createdAt).format('DD MMM YYYY')}</span>
       ),
     },
-    {
-      key: 'isActive',
-      label: 'Active',
-      type: 'element',
-      render: (row) => <>{row?.isActive ? 'Yes' : 'No'}</>,
-    },
   ];
 
   return (
@@ -78,6 +95,7 @@ const Teams = () => {
         <AddTeamDialog query={query} skip={skip} limit={limit} />
 
         <Table
+          name={'Teams'}
           columns={columns}
           total={teams.total}
           key={'team-table'}
