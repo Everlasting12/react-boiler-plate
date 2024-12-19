@@ -81,20 +81,6 @@ const Project = () => {
       ),
     },
     {
-      key: 'createdAt',
-      label: 'Created on',
-      type: 'element',
-      render: (row) => (
-        <span>{dayjs(row?.createdAt).format('DD MMM YYYY')}</span>
-      ),
-    },
-    {
-      key: 'isActive',
-      label: 'Active',
-      type: 'element',
-      render: (row) => <>{row?.isActive ? 'Yes' : 'No'}</>,
-    },
-    {
       key: 'Action',
       label: 'Action',
       type: 'element',

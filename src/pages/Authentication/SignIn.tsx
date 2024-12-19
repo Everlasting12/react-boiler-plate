@@ -28,7 +28,7 @@ const SignIn = () => {
   const onSubmit = async ({ username, password }: any) => {
     const success = await loginWithEmail({ username, password });
     if (success) {
-      navigate('/');
+      navigate('/tasks');
     }
   };
   return (

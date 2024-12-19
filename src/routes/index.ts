@@ -4,9 +4,9 @@ const Permissions = lazy(() => import('../pages/RoleManagement/Permissions'));
 const Roles = lazy(() => import('../pages/RoleManagement/Roles'));
 const UserRoles = lazy(() => import('../pages/RoleManagement/UserRoles'));
 const Tasks = lazy(() => import('../pages/Tasks/Tasks'));
+const Task = lazy(() => import('../pages/Tasks/Task'));
 const Project = lazy(() => import('../pages/Project/Project'));
 const Teams = lazy(() => import('../pages/Teams/Teams'));
-const Calendar = lazy(() => import('../pages/Calendar'));
 const Chart = lazy(() => import('../pages/Chart'));
 const FormElements = lazy(() => import('../pages/Form/FormElements'));
 const FormLayout = lazy(() => import('../pages/Form/FormLayout'));
@@ -36,6 +36,11 @@ const coreRoutes = [
     path: '/tasks',
     title: 'Tasks',
     component: Tasks,
+  },
+  {
+    path: '/tasks/:taskId',
+    title: 'Task',
+    component: Task,
   },
   {
     path: '/projects',

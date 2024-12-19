@@ -1,38 +1,36 @@
 export enum TaskStatus {
-  NEW = 'New',
+  PENDING = 'Pending',
   IN_PROGRESS = 'In Progress',
+  DONE = 'Done',
   COMPLETED = 'Completed',
   ON_HOLD = 'On Hold',
-  CANCELLED = 'Cancelled',
-  //   PENDING_REVIEW = 'Pending Review',
-  //   IN_REVIEW = 'In Review',
-  ARCHIVED = 'Archived',
+  IN_REVIEW = 'In Review',
 }
 
 export const TaskStatusColors = {
-  NEW: {
+  PENDING: {
     text: 'text-white',
-    bg: 'bg-sky-500', // Blue represents a fresh or new task
+    bg: 'bg-orange-600', // Blue represents a fresh or new task
   },
   IN_PROGRESS: {
     text: 'text-white',
-    bg: 'bg-yellow-500', // Yellow represents active work or ongoing progress
+    bg: 'bg-yellow-600', // Yellow represents active work or ongoing progress
+  },
+  DONE: {
+    text: 'text-white',
+    bg: 'bg-purple-600', // purple represents a successfully completed task
   },
   COMPLETED: {
     text: 'text-white',
-    bg: 'bg-green-500', // Green represents a successfully completed task
+    bg: 'bg-green-600', // Green represents a successfully completed task
   },
   ON_HOLD: {
     text: 'text-white',
-    bg: 'bg-gray-500', // Gray represents tasks that are paused or pending
+    bg: 'bg-slate-600', // Gray represents tasks that are paused or pending
   },
-  CANCELLED: {
+  IN_REVIEW: {
     text: 'text-white',
-    bg: 'bg-red-500', // Red represents tasks that have been cancelled or abandoned
-  },
-  ARCHIVED: {
-    text: 'text-white',
-    bg: 'bg-purple-500', // Purple represents archived tasks (set aside for reference)
+    bg: 'bg-blue-600', // Red represents tasks that have been cancelled or abandoned
   },
 };
 
@@ -72,11 +70,31 @@ export enum TaskPriority {
   MEDIUM = 'Medium',
   LOW = 'Low',
 }
+
+export const TaskPriorityColors = {
+  HIGH: {
+    name: 'High',
+    text: 'text-red-500',
+    bg: 'border',
+  },
+  MEDIUM: {
+    name: 'Medium',
+    text: 'text-yellow-600 dark:text-yellow-500',
+    bg: 'border',
+  },
+  LOW: {
+    name: 'Low',
+    text: 'text-green-500',
+    bg: 'border',
+  },
+};
+
 export enum ProjectPriority {
   HIGH = 'High',
   MEDIUM = 'Medium',
   LOW = 'Low',
 }
+
 export enum ProjectCategory {
   A = 'A',
   'A+' = 'A+',
@@ -86,20 +104,20 @@ export enum ProjectCategory {
 
 export const ProjectCategoryColors = {
   A: {
-    text: 'text-white',
-    bg: 'bg-sky-200', // Blue represents a fresh or new task
+    text: 'text-sky-900',
+    bg: 'bg-green-100', // Blue represents a fresh or new task
   },
   'A+': {
-    text: 'text-white',
-    bg: 'bg-sky-400', // Yellow represents active work or ongoing progress
+    text: 'text-sky-900',
+    bg: 'bg-yellow-200', // Yellow represents active work or ongoing progress
   },
   AA: {
     text: 'text-white',
-    bg: 'bg-sky-600', // Green represents a successfully completed task
+    bg: 'bg-orange-300', // Green represents a successfully completed task
   },
   'AA++': {
     text: 'text-white',
-    bg: 'bg-sky-800', // Gray represents tasks that are paused or pending
+    bg: 'bg-red-500', // Gray represents tasks that are paused or pending
   },
 };
 
@@ -119,4 +137,22 @@ export enum AccessMethods {
   UPDATE = 'UPDATE',
   DELETE = 'DELETE',
   ALL = '*',
+}
+
+export function getStatusColor(status: TaskStatus): string {
+  switch (status) {
+    case TaskStatus.PENDING:
+      return 'bg-yellow-500';
+    case TaskStatus.IN_PROGRESS:
+      return 'bg-blue-500';
+    case TaskStatus.DONE:
+    case TaskStatus.COMPLETED:
+      return 'bg-green-500';
+    case TaskStatus.ON_HOLD:
+      return 'bg-red-500';
+    case TaskStatus.IN_REVIEW:
+      return 'bg-purple-500';
+    default:
+      return 'bg-gray-500';
+  }
 }

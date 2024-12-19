@@ -3,12 +3,10 @@ import { Data, Query } from './common.types';
 export type Task = {
   id: number;
   taskId: string;
-  title: string;
   drawingTitle: string;
   description: string;
   status: string;
   priority: string;
-  dueTime: number;
   projectId: string;
   assignedToId: string;
   createdById: string;
@@ -43,6 +41,7 @@ export interface TaskQuery extends Query {
   relation?: boolean;
   projectId?: string;
   createdById?: string;
+  priority?: string[];
 }
 
 export interface TaskStoreType {
@@ -55,4 +54,6 @@ export interface TaskStoreType {
     payload: Partial<Task>,
   ) => Promise<boolean | undefined>;
   sendTaskToTeamLead: (taskId: string, projectId: string) => void;
+  task: undefined | Task;
+  fetchTaskByTaskId: (taskId: string) => void;
 }

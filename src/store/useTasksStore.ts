@@ -8,6 +8,7 @@ import { useLoginStore } from './useLoginStore';
 
 export const useTaskStore = create<TaskStoreType>((set) => ({
   tasks: { data: [], limit: 10, skip: 0, total: 0 },
+  task: undefined,
   fetchTasks: async (query: TaskQuery) => {
     try {
       const roleId = useLoginStore.getState().authenticatedUserRoleId;
@@ -70,6 +71,21 @@ export const useTaskStore = create<TaskStoreType>((set) => ({
       );
     } catch (error) {
       console.log('🚀 ~ sendTaskToTeamLead: ~ error:', error);
+    }
+  },
+  fetchTaskByTaskId: async (taskId: string) => {
+    try {
+      const res = await API.get(
+        replaceUrlParams(`${TASKS}/:taskId`, { taskId }),
+        {
+          params: {
+            relation: true,
+          },
+        },
+      );
+      set({ task: res.data });
+    } catch (error) {
+      console.log('fetchTaskByTaskId: ~ error:', error);
     }
   },
 }));

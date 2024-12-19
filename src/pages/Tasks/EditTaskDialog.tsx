@@ -78,28 +78,19 @@ const EditTaskDialog = ({
     resolver: yupResolver(validationSchema),
     mode: 'onChange',
   });
-
   const onSubmit = async (data: any) => {
-    const payload = {
+    let payload = {
       ...data,
     };
+    console.log(
+      '88888888888888888 data.assignedToId.value',
+      data.assignedToId.value,
+    );
     payload.assignedToId = data.assignedToId.value;
-    console.log('🚀 ~ onSubmit ~ payload:', payload);
-    // const { projectId, ...rest } = data;
+    const { projectId, ...rest } = payload;
+    console.log('🚀 ~ onSubmit ~ rest:', rest);
 
-    // const success = await editTask(projectId, rest);
-
-    // console.log('🚀 ~ onSubmit ~ success:', success);
-    // if (success) {
-    //   reset();
-    //   setIsModalOpen(false);
-
-    //   query.skip = skip;
-    //   query.limit = limit;
-    //   fetchTasks(query);
-    // }
-
-    if (task) {
+    if (task?.taskId) {
       console.log('🚀 ~ onSubmit ~ task:', task);
 
       const updatedFields = Object.keys(payload).reduce((acc, key) => {
@@ -108,7 +99,18 @@ const EditTaskDialog = ({
         }
         return acc;
       }, {} as any);
+
       console.log('updatedFields --------------->>', updatedFields);
+      const success = await editTask(task.taskId, projectId, rest);
+      console.log('🚀 ~ onSubmit ~ success:', success);
+      if (success) {
+        reset();
+        setIsEditModalOpen(false);
+
+        query.skip = skip;
+        query.limit = limit;
+        fetchTasks(query);
+      }
     }
   };
 

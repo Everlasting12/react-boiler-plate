@@ -33,19 +33,13 @@ import { TaskQuery } from '../../types/useTasksStore.types';
 import { useLoginStore } from '../../store/useLoginStore';
 
 const validationSchema = yup.object().shape({
-  title: yup.string().required('title is required'),
-  drawingTitle: yup.string(),
-  description: yup.string().required('Description is required'),
+  drawingTitle: yup.string().required('Title is required'),
+  description: yup.string().max(1000, 'Maximum 1000 characters allowed'),
   projectId: yup.string().required('Project is required'),
   priority: yup
     .mixed()
     .oneOf(Object.keys(TaskPriority))
     .required('Priority is required'),
-  dueTime: yup
-    .number()
-    .typeError('Due time should in seconds')
-    .positive()
-    .required('Due Time is required'),
   assignedToId: yup
     .object()
     .typeError('Assignee is required')
@@ -161,16 +155,7 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
           className="overflow-y-auto h-[calc(100vh-50vh)] max-h-[calc(100vh-30%)] scrollbar md:px-5 flex flex-col gap-2 text-xs"
         >
           <div className="flex flex-col">
-            <label className="text-xs">Task Title:</label>
-            <input
-              className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
-              {...register('title')}
-              placeholder="Enter title"
-            />
-            <p className="text-red-500 text-[9px]">{errors?.title?.message}</p>
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs">Drawing Title:</label>
+            <label className="text-xs">Title:</label>
             <input
               className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
               {...register('drawingTitle')}
@@ -182,7 +167,7 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
           </div>
           <div className="flex flex-col">
             <label className="text-xs">Description:</label>
-            <input
+            <textarea
               className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
               {...register('description')}
               placeholder="Enter description"
@@ -201,8 +186,12 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
                 <select
                   {...field}
                   className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
-                  defaultValue={projects?.data?.at(0)?.projectId}
+                  // defaultValue={projects?.data?.at(0)?.projectId}
+                  defaultValue={''}
                 >
+                  <option value="" disabled className="text-sm">
+                    Select Project
+                  </option>
                   {projects?.data?.map((p) => (
                     <option key={p.projectId} value={p.projectId}>
                       {p.name}
@@ -249,8 +238,12 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
               render={({ field }) => (
                 <select
                   {...field}
+                  defaultValue=""
                   className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
                 >
+                  <option value="" disabled className="text-sm">
+                    Select Priority
+                  </option>
                   {Object.entries(TaskPriority).map(([key, priority]) => (
                     <option key={key} value={key}>
                       {priority}
@@ -264,21 +257,9 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
             </p>
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs">Due Time:</label>
-            <input
-              className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
-              {...register('dueTime')}
-              placeholder="Enter Due Time in hours (hr)"
-            />
-            <p className="text-red-500 text-[9px]">
-              {errors?.dueTime?.message}
-            </p>
-          </div>
-
           <button
             type="submit"
-            className="p-2 my-2 bg-primary hover:bg-primary/90 rounded-md text-white"
+            className="p-2 my-2 block bg-primary hover:bg-primary/90 rounded-md text-white"
           >
             Save Task
           </button>

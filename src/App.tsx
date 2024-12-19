@@ -2,7 +2,6 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-import ECommerce from './pages/Dashboard/ECommerce';
 import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
 import Loader from './common/Loader';
@@ -29,13 +28,13 @@ function App() {
       if (data == false && !isAuthRoute) {
         navigate('/auth/signin');
       } else {
-        navigate('/');
+        navigate('/tasks');
       }
     } else {
       if (location.pathname && !isAuthRoute) {
         navigate(location.pathname);
       } else {
-        navigate('/');
+        navigate('/tasks');
       }
     }
   }, [getAuthDetails, isAuthenticated, location?.state]);
@@ -53,12 +52,12 @@ function App() {
         <Route path="/auth/signin" element={<SignIn />} />
         <Route path="/auth/signup" element={<SignUp />} />
         <Route element={<RouteGuard Component={DefaultLayout} />}>
-          <Route index element={<ECommerce />} />
           {routes.map((routes, index) => {
             const { path, component: Component } = routes;
             return (
               <Route
                 key={index}
+                index={index == 0}
                 path={path}
                 element={
                   <Suspense fallback={<Loader />}>

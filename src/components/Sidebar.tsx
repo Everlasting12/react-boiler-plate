@@ -5,6 +5,7 @@ import SidebarLinkGroup from './SidebarLinkGroup';
 import {
   CircleChevronDown,
   CircleChevronUp,
+  ClipboardCheck,
   Fingerprint,
   FolderOpen,
   IdCard,
@@ -117,7 +118,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <h3 className="ml-4 text-sm font-semibold text-bodydark2">MENU</h3>
 
             <ul className="flex flex-col gap-1.5">
-              <SidebarLinkGroup
+              {/* <SidebarLinkGroup
                 activeCondition={
                   pathname === '/' || pathname.includes('dashboard')
                 }
@@ -218,7 +219,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup> */}
               {renderWithAccessControl(
                 <li>
                   <NavLink
@@ -255,6 +256,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {renderWithAccessControl(
                 <li>
                   <NavLink
+                    to="/approvals"
+                    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-500 hover:text-white dark:text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      pathname.includes('tasks') && 'bg-graydark dark:bg-meta-4'
+                    }`}
+                  >
+                    <ClipboardCheck />
+                    Approvals
+                  </NavLink>
+                </li>,
+                'APPROVALS',
+                'EDIT',
+                '*',
+              )}
+              {/* {renderWithAccessControl(
+                <li>
+                  <NavLink
                     to="/teams"
                     className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-500 hover:text-white dark:text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                       pathname.includes('teams') && 'bg-graydark dark:bg-meta-4'
@@ -267,7 +284,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 'TEAMS',
                 'READ',
                 '*',
-              )}
+              )} */}
             </ul>
 
             {/* <ul className="mb-6 flex flex-col gap-1.5">
