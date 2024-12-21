@@ -12,6 +12,7 @@ type initialAuthObjType = {
   token: string;
   feScopes: string[];
   loggedInUserId: string;
+  permissionEntities: Record<string, string[]>;
 };
 let initialAuthObj: initialAuthObjType = {
   isAuthenticated: false,
@@ -20,6 +21,7 @@ let initialAuthObj: initialAuthObjType = {
   token: '',
   feScopes: [],
   loggedInUserId: '',
+  permissionEntities: {},
 };
 
 export type LoginStoreType = typeof initialAuthObj & {
@@ -49,7 +51,7 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
       const {
         authentication: {
           accessToken,
-          payload: { feScopes, roleId },
+          payload: { feScopes, roleId, permissionEntities },
         },
         user,
       } = data;
@@ -60,6 +62,7 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
         Cookies.set('loggedInUserId', user?.userId);
         Cookies.set('feScopes', JSON.stringify(feScopes));
         Cookies.set('authenticatedUserRoleId', roleId);
+        Cookies.set('permissionEntities', JSON.stringify(permissionEntities));
         Cookies.set('isAuthenticated', 'true');
         set({
           feScopes,
@@ -86,6 +89,7 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
       Cookies.remove('feScopes');
       Cookies.remove('isAuthenticated');
       Cookies.remove('authenticatedUserRoleId');
+      Cookies.remove('permissionEntities');
       set({ ...initialAuthObj });
     } catch (error: any) {
       console.log('Error in logging out:', error?.message);
@@ -96,8 +100,12 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
     const getAuthStatus = Cookies.get('isAuthenticated');
     const getFeScopes = Cookies.get('feScopes');
     const authenticatedUserRoleId = Cookies.get('authenticatedUserRoleId');
+    const getPermissionEntities = Cookies.get('permissionEntities');
     const isAuthenticated = getAuthStatus === 'true';
     const feScopes = getFeScopes ? JSON.parse(getFeScopes) : [];
+    const permissionEntities = getPermissionEntities
+      ? JSON.parse(getPermissionEntities)
+      : {};
     const user = Cookies.get('user')
       ? JSON.parse(Cookies.get('user')!)
       : undefined;
@@ -108,6 +116,7 @@ export const useLoginStore = create<LoginStoreType>((set) => ({
       feScopes,
       authenticatedUserRoleId,
       loggedInUserId,
+      permissionEntities,
       isAuthenticated,
     }));
     return isAuthenticated;

@@ -25,6 +25,7 @@ export const lightModeStyles = {
 export const darkModeStyles = {
   control: (provided) => ({
     ...provided,
+    padding: '0',
     backgroundColor: 'rgb(31 41 55)', // Tailwind gray-800
     borderColor: 'rgb(55 65 81)', // Tailwind gray-700
     color: 'white',
@@ -32,6 +33,19 @@ export const darkModeStyles = {
     '&:hover': {
       borderColor: 'rgb(75 85 99)', // Tailwind gray-600
     },
+  }),
+
+  valueContainer: (baseStyle) => ({
+    ...baseStyle,
+    padding: '0 5px',
+  }),
+  indicatorsContainer: (baseStyle) => ({
+    ...baseStyle,
+    padding: '0',
+  }),
+  dropdownIndicator: (baseStyle) => ({
+    ...baseStyle,
+    padding: '0 5px',
   }),
   singleValue: (baseStyle) => ({
     ...baseStyle,

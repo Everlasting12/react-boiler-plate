@@ -1,5 +1,22 @@
 import { Data, Query } from './common.types';
 
+export type HistoryEvent = {
+  id: number;
+  eventType: string;
+  details: {
+    from: string;
+    userId: string;
+    to?: string;
+    text?: string;
+  };
+  createdAt: string;
+  updatedBy?: {
+    name?: string;
+    email: string;
+    userId?: string;
+  };
+};
+
 export type Task = {
   id: number;
   taskId: string;
@@ -16,6 +33,7 @@ export type Task = {
   assignedTo?: AssignedTo;
   createdBy?: CreatedBy;
   project?: Project;
+  history?: HistoryEvent[];
 };
 
 export type AssignedTo = {
@@ -56,4 +74,9 @@ export interface TaskStoreType {
   sendTaskToTeamLead: (taskId: string, projectId: string) => void;
   task: undefined | Task;
   fetchTaskByTaskId: (taskId: string) => void;
+  performTaskAction: (
+    taskId: string,
+    projectId: string,
+    payload: object,
+  ) => void;
 }

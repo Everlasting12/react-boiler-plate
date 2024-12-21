@@ -7,9 +7,14 @@ import {
 } from '../../types/useProjectStore.types';
 import AddProjectDialog from './AddProjectDialog';
 import dayjs from 'dayjs';
-import { ProjectStatus, ProjectStatusColors } from '../../common/enums';
 import { Pencil } from 'lucide-react';
 import EditProjectDialog from './EditProjectDialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../my-components/Tooltip';
 
 const Project = () => {
   const { fetchProjects, projects } = useProjectStore();
@@ -31,19 +36,35 @@ const Project = () => {
     },
     {
       key: 'name',
-      label: 'Name',
+      label: 'Project',
       type: 'text',
     },
     {
-      key: 'description',
-      label: 'Description',
+      key: 'clientName',
+      label: 'Client',
       type: 'element',
-      render: (row) => <p className="max-w-[200px]">{row?.description}</p>,
+      render: (row) => (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>{row?.clientName}</TooltipTrigger>
+            <TooltipContent className="bg-white dark:bg-slate-700 dark:text-white shadow-xl">
+              <p>{row?.clientEmailId?.split(',').join(', ')}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ),
     },
+    // {
+    //   key: 'description',
+    //   label: 'Description',
+    //   type: 'element',
+    //   render: (row) => <p className="max-w-[200px]">{row?.description}</p>,
+    // },
     {
-      key: 'priority',
-      label: 'Priority',
-      type: 'text',
+      key: 'location',
+      label: 'Location',
+      type: 'element',
+      render: (row) => <p className="max-w-[200px]">{row?.location}</p>,
     },
     {
       key: 'category',
@@ -51,21 +72,31 @@ const Project = () => {
       type: 'text',
     },
     {
-      key: 'status',
-      label: 'Status',
-      type: 'element',
-      render: (row) => (
-        <p
-          className={`px-1 text-center text-[11px] rounded-xl ${ProjectStatusColors[
-            row?.status as keyof typeof ProjectStatus
-          ]?.bg} ${ProjectStatusColors[
-            row?.status as keyof typeof ProjectStatus
-          ]?.text}`}
-        >
-          {ProjectStatus[row?.status as keyof typeof ProjectStatus]}
-        </p>
-      ),
+      key: 'projectCode',
+      label: 'Project Code',
+      type: 'text',
     },
+    // {
+    //   key: 'priority',
+    //   label: 'Priority',
+    //   type: 'text',
+    // },
+    // {
+    //   key: 'status',
+    //   label: 'Status',
+    //   type: 'element',
+    //   render: (row) => (
+    //     <p
+    //       className={`px-1 text-center text-[11px] rounded-xl ${ProjectStatusColors[
+    //         row?.status as keyof typeof ProjectStatus
+    //       ]?.bg} ${ProjectStatusColors[
+    //         row?.status as keyof typeof ProjectStatus
+    //       ]?.text}`}
+    //     >
+    //       {ProjectStatus[row?.status as keyof typeof ProjectStatus]}
+    //     </p>
+    //   ),
+    // },
     {
       key: 'createdBy',
       label: 'Created By',

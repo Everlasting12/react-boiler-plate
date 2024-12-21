@@ -3,80 +3,18 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTaskStore } from '../../store/useTasksStore';
 import { SendHorizontal } from 'lucide-react';
-import { TaskStatus, TaskStatusColors } from '../../common/enums';
+import {
+  RolesEnum,
+  TaskEvents,
+  TaskStatus,
+  TaskStatusColors,
+} from '../../common/enums';
 import dayjs from 'dayjs';
 
-interface HistoryEvent {
-  id: number;
-  eventType: string;
-  details: {
-    from: string;
-    to?: string;
-    text?: string;
-  };
-  createdAt: string;
-}
-
-const historyT: HistoryEvent[] = [
-  {
-    id: 1,
-    eventType: 'STATUS_CHANGE',
-    details: {
-      from: 'PENDING',
-      to: 'IN_PROGRESS',
-    },
-    createdAt: '2024-12-14T16:20:10.230Z',
-  },
-  {
-    id: 2,
-    eventType: 'COMMENT',
-    details: {
-      from: 'Sidhesh Parab',
-      text: 'Hii this is a comment',
-    },
-    createdAt: '2024-12-14T16:20:10.230Z',
-  },
-  {
-    id: 3,
-    eventType: 'STATUS_CHANGE',
-    details: {
-      from: 'IN_PROGRESS',
-      to: 'DONE',
-    },
-    createdAt: '2024-12-15T16:20:10.230Z',
-  },
-  {
-    id: 4,
-    eventType: 'STATUS_CHANGE',
-    details: {
-      from: 'DONE',
-      to: 'IN_REVIEW',
-    },
-    createdAt: '2024-12-16T16:20:10.230Z',
-  },
-  {
-    id: 5,
-    eventType: 'COMMENT',
-    details: {
-      from: 'Pranay Nar',
-      text: 'Facing issues for doing this task as this is dependedent on task - 703',
-    },
-    createdAt: '2024-12-15T16:20:10.230Z',
-  },
-  {
-    id: 6,
-    eventType: 'COMMENT',
-    details: {
-      from: 'Pratik H',
-      text: 'I will finish the task 703 first tommorrow 2nd half, then we can proceeds with this task',
-    },
-    createdAt: '2024-12-16T16:20:10.230Z',
-  },
-];
 const Task = () => {
   const { taskId } = useParams();
-
-  const { task, fetchTaskByTaskId } = useTaskStore();
+  const { user, authenticatedUserRoleId } = useLoginStore();
+  const { task, fetchTaskByTaskId, performTaskAction } = useTaskStore();
   const [taskComment, setTaskComment] = useState<string>('');
 
   const [taskStatus, setTaskStatus] = useState<keyof typeof TaskStatus>(
@@ -102,21 +40,71 @@ const Task = () => {
 
   const handleComment = () => {
     console.log('taskComment', taskComment);
+
+    const payload = {
+      action: {
+        eventType: TaskEvents.COMMENT,
+        details: {
+          from: user?.name,
+          userId: user?.userId,
+          text: taskComment,
+        },
+      },
+    };
+
+    performTaskAction(task.taskId!, task.projectId!, payload);
     setTaskComment('');
   };
+  const handleStatusChange = (value: string) => {
+    const payload = {
+      status: value,
+      action: {
+        eventType: TaskEvents.STATUS_CHANGE,
+        details: {
+          from: task.status,
+          userId: user?.userId,
+          to: value,
+        },
+      },
+    };
 
+    performTaskAction(task.taskId!, task.projectId!, payload);
+  };
+
+  const handleDescriptionSave = (value: string) => {
+    performTaskAction(task.taskId!, task.projectId!, {
+      description: value,
+    });
+  };
+  const handleTitleSave = (value: string) => {
+    performTaskAction(task.taskId!, task.projectId!, {
+      drawingTitle: value,
+    });
+  };
   return (
-    <div className="w-full md:grid md:grid-cols-5 grow my-3 rounded-lg border border-slate-200 dark:border-slate-700">
+    <div className="w-full font-sans md:grid md:grid-cols-5 grow my-3 rounded-lg border border-slate-200 dark:border-slate-700">
       <div className="p-3 md:col-span-3">
         <div className="flex flex-col gap-3">
-          <span className="text-black dark:text-white text-xl font-medium">
-            {task?.drawingTitle}
-          </span>
+          <ConvertEditable
+            data={task?.drawingTitle}
+            element={
+              <span className="text-black dark:text-white text-xl font-medium">
+                {task?.drawingTitle}
+              </span>
+            }
+            onSave={handleTitleSave}
+          />
           <span className="text-sm">Description:</span>
           <div className="w-full p-5 rounded bg-slate-400/10">
-            <pre className="font-sans text-slate-600 w-full text-pretty dark:text-slate-400 text-base break-words whitespace-break-spaces overflow-auto">
-              {task?.description}
-            </pre>
+            <ConvertEditable
+              data={task?.description}
+              element={
+                <pre className="font-sans text-slate-600 w-full text-pretty dark:text-slate-400 text-xs md:text-base break-words whitespace-break-spaces overflow-auto">
+                  {task?.description}
+                </pre>
+              }
+              onSave={handleDescriptionSave}
+            />
           </div>
         </div>
         <div className="mt-2">
@@ -137,7 +125,7 @@ const Task = () => {
               <SendHorizontal className="text-white" />
             </button>
           </div>
-          <TaskStatusHistory history={historyT} />
+          <TaskStatusHistory history={task.history ?? []} />
         </div>
       </div>
       <div className="p-3 md:col-span-2 border-l border-slate-200 dark:border-slate-700">
@@ -145,7 +133,42 @@ const Task = () => {
           <Select
             value={taskStatus}
             onValueChange={(value: string) => {
+              const isSelectOptionCompletedDisabled =
+                [RolesEnum.ARCHITECT, RolesEnum.DRAUGHTSMAN].includes(
+                  authenticatedUserRoleId as RolesEnum,
+                ) && value == 'COMPLETED';
+
+              const isSelectOptionsDisabled =
+                [RolesEnum.ARCHITECT, RolesEnum.DRAUGHTSMAN].includes(
+                  authenticatedUserRoleId as RolesEnum,
+                ) &&
+                TaskStatus[task.status as keyof typeof TaskStatus] ===
+                  TaskStatus.COMPLETED;
+
+              if (isSelectOptionsDisabled) {
+                toast.error(
+                  `You don't have permission to change task's status once it is marked '${TaskStatus.COMPLETED}'`,
+                  {
+                    position: 'top-center',
+                    duration: 3000,
+                    className: 'bg-red-200 text-red-600 text-sm font-sans',
+                  },
+                );
+                return;
+              } else if (isSelectOptionCompletedDisabled) {
+                toast.error(
+                  `You don't have permission to mark task '${TaskStatus.COMPLETED}'`,
+                  {
+                    position: 'top-center',
+                    duration: 3000,
+                    className: 'bg-red-200 text-red-600 text-sm font-sans',
+                  },
+                );
+                return;
+              }
+
               setTaskStatus(value as keyof typeof TaskStatus);
+              value !== task.status && handleStatusChange(value);
             }}
           >
             <SelectTrigger
@@ -159,7 +182,7 @@ const Task = () => {
             <SelectContent className="border-0 bg-white dark:bg-slate-900 shadow-2xl">
               <SelectGroup className="">
                 <SelectLabel>Status</SelectLabel>
-                {Object.entries(TaskStatus).map(([key, status]) => (
+                {Object.entries(TaskStatus).flatMap(([key, status]) => (
                   <SelectItem
                     className="hover:bg-slate-200 rounded cursor-pointer focus:bg-slate-200"
                     key={key}
@@ -213,7 +236,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../my-components/Select';
-import TaskStatusHistory from '../../my-components/TaskStatusHistory';
+import TaskStatusHistory from './TaskStatusHistory';
+import { useLoginStore } from '../../store/useLoginStore';
+import { ConvertEditable } from '../../my-components/ConvertEditable';
+import toast from 'react-hot-toast';
 
 export const TaskMetaInformation = ({ task }: { task: TaskType }) => {
   return (

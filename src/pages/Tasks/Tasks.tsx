@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Table, { ColumnDef } from '../../common/Table';
 import { useTaskStore } from '../../store/useTasksStore';
 import { TaskQuery, Task as TaskType } from '../../types/useTasksStore.types';
@@ -11,22 +11,38 @@ import {
   TaskPriority,
   TaskPriorityColors,
 } from '../../common/enums';
-import { Send } from 'lucide-react';
+import { Mail, Send } from 'lucide-react';
 import EditTaskDialog from './EditTaskDialog';
 import { Link } from 'react-router-dom';
+import { useLoginStore } from '../../store/useLoginStore';
+import { useProjectStore } from '../../store/useProjectStore';
 const Tasks = () => {
+  const { authenticatedUserRoleId, permissionEntities, user } = useLoginStore();
   const { fetchTasks, tasks, sendTaskToTeamLead } = useTaskStore();
+  const { fetchProjects, projects } = useProjectStore();
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(10);
   const [query, _setQuery] = useState<TaskQuery>({
     paginate: true,
     isActive: true,
-    projectId: undefined,
+    projectId: permissionEntities['projectId']?.at(0),
     relation: true,
     priority: undefined,
   });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [task, setTask] = useState<undefined | TaskType>(undefined);
+
+  useEffect(() => {
+    fetchProjects({
+      paginate: false,
+      isActive: true,
+      select: ['name', 'projectId'],
+      ...(permissionEntities['projectId']?.at(0) == '*'
+        ? {}
+        : { projectId: permissionEntities['projectId'] }),
+    });
+  }, []);
+
   const columns: ColumnDef[] = [
     {
       key: 'sr_no',
@@ -47,18 +63,18 @@ const Tasks = () => {
         </Link>
       ),
     },
-    {
-      key: 'description',
-      label: 'Description',
-      type: 'element',
-      render: (row: TaskType) => (
-        <span className="block max-w-70">
-          {row?.description?.length > 100
-            ? `${row?.description?.slice(0, 99)}...`
-            : row?.description}
-        </span>
-      ),
-    },
+    // {
+    //   key: 'description',
+    //   label: 'Description',
+    //   type: 'element',
+    //   render: (row: TaskType) => (
+    //     <span className="block max-w-70">
+    //       {row?.description?.length > 100
+    //         ? `${row?.description?.slice(0, 99)}...`
+    //         : row?.description}
+    //     </span>
+    //   ),
+    // },
     {
       key: 'priority',
       label: 'Priority',
@@ -116,7 +132,10 @@ const Tasks = () => {
 
     {
       key: 'assignedTo',
-      label: 'Assigned to',
+      label:
+        authenticatedUserRoleId === 'DIRECTOR'
+          ? 'Employee Name'
+          : 'Assigned to',
       type: 'element',
       render: (row) => <span>{row?.assignedTo?.name}</span>,
     },
@@ -126,27 +145,12 @@ const Tasks = () => {
       type: 'element',
       render: (row) => <span>{row?.createdBy?.name}</span>,
     },
-    // {
-    //   key: 'isActive',
-    //   label: 'Active',
-    //   type: 'element',
-    //   render: (row) => <>{row?.isActive ? 'Yes' : 'No'}</>,
-    // },
     {
       key: 'Action',
       label: 'Action',
       type: 'element',
       render: (row: TaskType) => (
         <div className="flex gap-2">
-          {/* <button
-            onClick={() => {
-              setIsEditModalOpen(true);
-              setTask(row);
-            }}
-            className="flex items-center justify-center p-1.5 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
-          >
-            <Pencil size={14} />
-          </button> */}
           <button
             title="send task to review"
             onClick={() => {
@@ -156,6 +160,29 @@ const Tasks = () => {
           >
             <Send size={14} />
           </button>
+
+          <a
+            target="_blank"
+            href={`mailto:?subject=${encodeURIComponent(
+              `Request for a review - ${row?.drawingTitle}`,
+            )}&body=${encodeURIComponent(
+              `Hi,
+
+Task title: ${row?.drawingTitle ?? ''}
+Task description: ${row?.description ?? 'NA'}
+
+Thanks and regards,
+${user?.name ?? ''}`,
+            )}`}
+            rel="noopener noreferrer"
+          >
+            <button
+              title="Send Email"
+              className="flex items-center justify-center p-1.5 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
+            >
+              <Mail size={14} />
+            </button>
+          </a>
         </div>
       ),
     },
@@ -184,6 +211,31 @@ const Tasks = () => {
               {Object.entries(TaskPriority).map(([key, priority]) => (
                 <option key={key} value={key}>
                   {priority}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label htmlFor="projects" className="text-sm">
+            Projects:{' '}
+            <select
+              id="projects"
+              defaultValue=""
+              className="py-1 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+              onChange={(e) => {
+                if (e?.target?.value) {
+                  _setQuery({
+                    ...query,
+                    projectId: [e.target.value].join(','),
+                  });
+                }
+              }}
+            >
+              <option value="" disabled className="text-sm">
+                Select Project
+              </option>
+              {projects?.data?.map((project) => (
+                <option key={project?.projectId} value={project?.projectId}>
+                  {project?.name}
                 </option>
               ))}
             </select>

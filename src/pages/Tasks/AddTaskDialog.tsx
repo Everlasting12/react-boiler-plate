@@ -31,6 +31,7 @@ import { useCommonStore } from '../../store/useCommonStore';
 import { useTeamStore } from '../../store/useTeamStore';
 import { TaskQuery } from '../../types/useTasksStore.types';
 import { useLoginStore } from '../../store/useLoginStore';
+import DatePicker from 'react-datepicker';
 
 const validationSchema = yup.object().shape({
   drawingTitle: yup.string().required('Title is required'),
@@ -44,6 +45,10 @@ const validationSchema = yup.object().shape({
     .object()
     .typeError('Assignee is required')
     .required('Assignee is required'),
+  dueDate: yup
+    .date()
+    .required('Due date is required')
+    .typeError('Invalid date'),
 });
 
 type Props = { query: TaskQuery; skip: number; limit: number };
@@ -66,7 +71,7 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
   });
 
   const onSubmit = async (data: any) => {
-    data.status = TaskStatus.NEW.toUpperCase();
+    data.status = TaskStatus.PENDING.toUpperCase();
     data.assignedToId = data.assignedToId.value;
 
     const { projectId, ...rest } = data;
@@ -254,6 +259,26 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
             />
             <p className="text-red-500 text-[9px]">
               {errors?.priority?.message}
+            </p>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs">Start Date:</label>
+            <Controller
+              name="dueDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  placeholderText="Select start date"
+                  className="w-full px-2 py-2.5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
+                  {...field}
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={(date: Date | null) => field.onChange(date)}
+                  dateFormat="yyyy/MM/dd"
+                />
+              )}
+            />
+            <p className="text-red-500 text-[9px]">
+              {errors?.dueDate?.message}
             </p>
           </div>
 

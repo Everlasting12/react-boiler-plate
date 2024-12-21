@@ -74,24 +74,37 @@ function Table<T>(props: TableType<T>) {
             </tr>
           </thead>
           <tbody>
-            {data?.map((item: T, rowIndex: number) => (
-              <tr
-                className="hover:bg-slate-200 dark:hover:bg-slate-800"
-                key={rowIndex}
-              >
-                {columns?.map((column: ColumnDef, columnIndex: number) => (
-                  <TableData
-                    key={rowIndex + column.key}
-                    item={item}
-                    column={column}
-                    rowIndex={rowIndex}
-                    columnIndex={columnIndex}
-                    skip={skip}
-                    pageNo={pageNo}
-                  />
-                ))}
+            {total ? (
+              data?.map((item: T, rowIndex: number) => (
+                <tr
+                  className="hover:bg-slate-200 dark:hover:bg-slate-800"
+                  key={rowIndex}
+                >
+                  {columns?.map((column: ColumnDef, columnIndex: number) => (
+                    <TableData
+                      key={rowIndex + column.key}
+                      item={item}
+                      column={column}
+                      rowIndex={rowIndex}
+                      columnIndex={columnIndex}
+                      skip={skip}
+                      pageNo={pageNo}
+                    />
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns?.length}
+                  className="h-30 py-2 px-2 border-2 text-sm border-white dark:border-boxdark bg-slate-50 dark:bg-boxdark-2/50"
+                >
+                  <div className=" h-30 flex items-center justify-center">
+                    {name} not found
+                  </div>
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-import UserOne from '../images/user/user-01.png';
 import { useLoginStore } from '../store/useLoginStore';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { logout, user } = useLoginStore();
+  const { logout, user, authenticatedUserRoleId } = useLoginStore();
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
@@ -45,16 +43,17 @@ const DropdownUser = () => {
         className="flex items-center gap-4"
         to="#"
       >
-        <span className="hidden text-right lg:block">
+        <span className=" text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
             {user?.name}
           </span>
-          <span className="block text-xs">UX Designer</span>
+          <span className="block text-xs">
+            {authenticatedUserRoleId
+              .toLowerCase()
+              .replace(/^[a-z]/, (char) => char.toUpperCase())
+              .replaceAll(/_/g, ' ')}
+          </span>
         </span>
-
-        {/* <span className="h-12 w-12 rounded-full">
-          <img src={UserOne} alt="User" />
-        </span> */}
 
         <svg
           className={`hidden fill-current sm:block ${

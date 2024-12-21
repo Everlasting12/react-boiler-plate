@@ -11,11 +11,12 @@ import {
   IdCard,
   KeyRound,
   ListTodo,
+  LogOut,
   ShieldCheck,
   UsersRound,
 } from 'lucide-react';
-import { useLoginStore } from '../store/useLoginStore';
 import renderWithAccessControl from '../common/access-control';
+import { useLoginStore } from '../store/useLoginStore';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -24,7 +25,7 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const location = useLocation();
-  const { feScopes } = useLoginStore();
+  const { logout } = useLoginStore();
   const { pathname } = location;
 
   const trigger = useRef<any>(null);
@@ -258,7 +259,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   <NavLink
                     to="/approvals"
                     className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-500 hover:text-white dark:text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                      pathname.includes('tasks') && 'bg-graydark dark:bg-meta-4'
+                      pathname.includes('approvals') &&
+                      'bg-graydark dark:bg-meta-4'
                     }`}
                   >
                     <ClipboardCheck />
@@ -615,7 +617,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </li>
             </ul> */}
           </div>
-
           {/* <div>
             <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
               OTHERS
@@ -875,6 +876,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarLinkGroup>
             </ul>
           </div> */}
+          <button
+            onClick={logout}
+            className={`my-1 w-full relative flex md:hidden items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-500 hover:text-white dark:text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4`}
+          >
+            <LogOut />
+            Log Out
+          </button>
         </nav>
       </div>
     </aside>

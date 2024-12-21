@@ -156,13 +156,11 @@ const EditTaskDialog = ({
         priority,
         description,
         drawingTitle,
-        dueTime,
-        title,
+        dueDate,
       } = task;
-      setValue('title', title);
       setValue('description', description);
       setValue('priority', priority);
-      setValue('dueTime', dueTime);
+      setValue('dueDate', dueDate);
       setValue('drawingTitle', drawingTitle);
       setValue('projectId', projectId);
       setValue('status', status);

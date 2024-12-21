@@ -36,3 +36,44 @@ export function extractVariablesFromUrls(
     value: '',
   }));
 }
+
+export const calculateRows = (value: string): number => {
+  const length = value?.length || 0;
+
+  if (length < 50) {
+    return 1;
+  } else if (length >= 50 && length <= 100) {
+    return 5;
+  } else if (length > 100 && length <= 200) {
+    return 8;
+  } else if (length > 200 && length <= 400) {
+    return 12;
+  } else {
+    return 15; // Cap the rows to a maximum of 15
+  }
+};
+
+export const getModifiedFields = <T extends object, N extends object>(
+  oldObject: Partial<T> = {} as Partial<T>,
+  newObject: Partial<N> = {} as Partial<N>,
+): Partial<N> => {
+  const updatedFields = Object.keys(newObject).reduce((acc, key) => {
+    const newValue = newObject[key as keyof N];
+    const oldValue = oldObject[key as keyof T];
+
+    // Handle special cases like Date objects
+    const isEqual = (a: any, b: any): boolean => {
+      if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime(); // Compare date values
+      }
+      return a === b; // Fallback for primitive types
+    };
+
+    if (!isEqual(newValue, oldValue)) {
+      acc[key as keyof N] = newValue;
+    }
+    return acc;
+  }, {} as Partial<N>);
+
+  return updatedFields;
+};

@@ -1,17 +1,7 @@
 import { ArrowRightCircle, MessageCircle } from 'lucide-react';
 import dayjs from 'dayjs';
-import { TaskStatus, TaskStatusColors, getStatusColor } from '../common/enums';
-
-interface HistoryEvent {
-  id: number;
-  eventType: string;
-  details: {
-    from: string;
-    to?: string;
-    text?: string;
-  };
-  createdAt: string;
-}
+import { TaskEvents, TaskStatus, TaskStatusColors } from '../../common/enums';
+import { HistoryEvent } from '../../types/useTasksStore.types';
 
 interface TaskStatusHistoryProps {
   history: HistoryEvent[];
@@ -52,9 +42,9 @@ export default function TaskStatusHistory({ history }: TaskStatusHistoryProps) {
 
 function getEventComponent(event: HistoryEvent) {
   switch (event.eventType) {
-    case 'STATUS_CHANGE':
+    case TaskEvents.STATUS_CHANGE:
       return <StatusChangeEvent event={event} />;
-    case 'COMMENT':
+    case TaskEvents.COMMENT:
       return <CommentEvent event={event} />;
     default:
       return null;
@@ -62,12 +52,12 @@ function getEventComponent(event: HistoryEvent) {
 }
 function getEventIcon(event: HistoryEvent) {
   switch (event.eventType) {
-    case 'STATUS_CHANGE':
+    case TaskEvents.STATUS_CHANGE:
       return {
         bg: 'bg-blue-500',
         icon: <ArrowRightCircle className="w-4 h-4" />,
       };
-    case 'COMMENT':
+    case TaskEvents.COMMENT:
       return {
         bg: 'bg-green-500',
         icon: <MessageCircle className="w-4 h-4" />,
@@ -83,8 +73,16 @@ function StatusChangeEvent({ event }: { event: HistoryEvent }) {
 
   return (
     <div className="font-sans">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-bold mb-1">Status Changed</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs font-bold mb-1">
+          Status changed {event?.updatedBy?.name ? 'by ' : ''}
+          <span
+            className="bg-slate-200 dark:bg-slate-700 px-1 rounded-md cursor-pointer"
+            title={event?.updatedBy?.email}
+          >
+            {event?.updatedBy?.name ? `@${event?.updatedBy?.name}` : ''}
+          </span>
+        </p>
         <p className="text-xs text-gray-500">
           {dayjs(event.createdAt).format('DD MMM YYYY')} at{' '}
           {dayjs(event.createdAt).format('hh:MM a')}

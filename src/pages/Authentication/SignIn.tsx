@@ -61,7 +61,7 @@ const SignIn = () => {
                   <input
                     type="email"
                     {...register('username')}
-                    defaultValue={'pranaypc@gmail.com'}
+                    defaultValue={'pratikh@gmail.com'}
                     placeholder="Enter your email"
                     className="w-full rounded-lg border text-black dark:text-white border-stroke bg-transparent py-3 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
@@ -80,7 +80,7 @@ const SignIn = () => {
                   <input
                     type={!showPassword ? 'password' : 'text'}
                     {...register('password')}
-                    defaultValue={'Pranay@123'}
+                    defaultValue={'Pratik@123'}
                     placeholder="Enter your password"
                     className="w-full rounded-lg border text-black dark:text-white border-stroke bg-transparent py-3 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />

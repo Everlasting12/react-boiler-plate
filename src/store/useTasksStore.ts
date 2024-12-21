@@ -6,7 +6,7 @@ import { replaceUrlParams } from '../common/utils';
 import toast from 'react-hot-toast';
 import { useLoginStore } from './useLoginStore';
 
-export const useTaskStore = create<TaskStoreType>((set) => ({
+export const useTaskStore = create<TaskStoreType>((set, get) => ({
   tasks: { data: [], limit: 10, skip: 0, total: 0 },
   task: undefined,
   fetchTasks: async (query: TaskQuery) => {
@@ -84,6 +84,21 @@ export const useTaskStore = create<TaskStoreType>((set) => ({
         },
       );
       set({ task: res.data });
+    } catch (error) {
+      console.log('fetchTaskByTaskId: ~ error:', error);
+    }
+  },
+  performTaskAction: async (
+    taskId: string,
+    projectId: string,
+    payload: object,
+  ) => {
+    try {
+      await API.patch(
+        replaceUrlParams(`${TASKS}/:taskId`, { taskId, projectId }),
+        payload,
+      );
+      get().fetchTaskByTaskId(taskId);
     } catch (error) {
       console.log('fetchTaskByTaskId: ~ error:', error);
     }

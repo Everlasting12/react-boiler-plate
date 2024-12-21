@@ -1,19 +1,35 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Table, { ColumnDef } from '../../common/Table';
-import { useTeamStore } from '../../store/useTeamStore';
-import { TeamQuery } from '../../types/useTeamStore.types';
-import AddTeamDialog from './AddTeamDialog';
+import { useApprovalStore } from '../../store/useApprovalStore';
 import dayjs from 'dayjs';
+import { TaskQuery } from '../../types/useTasksStore.types';
+import { useLoginStore } from '../../store/useLoginStore';
+import { useProjectStore } from '../../store/useProjectStore';
 
 const Approvals = () => {
-  const { fetchTeams, teams, showMembers } = useTeamStore();
+  const { authenticatedUserRoleId, permissionEntities, user } = useLoginStore();
+  const { fetchApprovalResquests, approvals } = useApprovalStore();
+  const { fetchProjects, projects } = useProjectStore();
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(10);
-  const [query, _setQuery] = useState<TeamQuery>({
+  const [query, _setQuery] = useState<TaskQuery>({
     paginate: true,
     isActive: true,
     relation: true,
+    projectId: permissionEntities['projectId']?.at(0),
   });
+
+  useEffect(() => {
+    fetchProjects({
+      paginate: false,
+      isActive: true,
+      select: ['name', 'projectId'],
+      ...(permissionEntities['projectId']?.at(0) == '*'
+        ? {}
+        : { projectId: permissionEntities['projectId'] }),
+    });
+  }, []);
+
   const columns: ColumnDef[] = [
     {
       key: 'sr_no',
@@ -60,7 +76,7 @@ const Approvals = () => {
     },
     {
       key: 'teamLeadId',
-      label: 'Team lead',
+      label: 'Approval lead',
       type: 'element',
       render: (row) => (
         <span>
@@ -90,19 +106,44 @@ const Approvals = () => {
 
   return (
     <>
-      {/* <Breadcrumb pageName="team" /> */}
+      {/* <Breadcrumb pageName="Approval" /> */}
       <div className="w-full max-w-full flex flex-col items-end rounded-md h-full">
-        <AddTeamDialog query={query} skip={skip} limit={limit} />
-
+        <div className="flex gap-3 items-center mb-2">
+          <label htmlFor="projects" className="text-sm">
+            Projects:{' '}
+            <select
+              id="projects"
+              defaultValue=""
+              className="py-1 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+              onChange={(e) => {
+                if (e?.target?.value) {
+                  _setQuery({
+                    ...query,
+                    projectId: [e.target.value].join(','),
+                  });
+                }
+              }}
+            >
+              <option value="" disabled className="text-sm">
+                Select Project
+              </option>
+              {projects?.data?.map((project) => (
+                <option key={project?.projectId} value={project?.projectId}>
+                  {project?.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         <Table
           name={'Approvals'}
           columns={columns}
-          total={teams.total}
+          total={approvals.total}
           key={'approval-table'}
           query={query}
           pageable={true}
-          data={teams.data}
-          fetch={fetchTeams}
+          data={approvals.data}
+          fetch={fetchApprovalResquests}
           skip={skip}
           setSkip={setSkip}
           limit={limit}

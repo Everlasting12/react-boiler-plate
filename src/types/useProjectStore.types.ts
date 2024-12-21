@@ -13,6 +13,16 @@ export type Project = {
   isActive?: boolean;
   updatedAt?: Date;
   createdAt?: Date;
+  projectCode: string;
+  clientName: string;
+  clientEmailId?: string;
+  location: string;
+  teamLeadId: string;
+  teamLead?: {
+    name?: string;
+    email?: string;
+    userId?: string;
+  };
 };
 
 export type CreatedBy = {
@@ -24,6 +34,7 @@ export type CreatedBy = {
 export interface ProjectQuery extends Query {
   name?: string[];
   isDefault?: boolean;
+  projectId?: string[];
 }
 
 export interface ProjectStoreType {
