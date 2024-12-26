@@ -14,14 +14,14 @@ export const usePermissionStore = create<PermissionStoreType>((set) => ({
       const res = await API.get(PERMISSIONS, { params: query });
       set({ permissions: res.data });
     } catch (error) {
-      console.log('🚀 ~ fetchPermissions: ~ error:', error);
+      // console.log('fetchPermissions: ~ error:', error);
     }
   },
   addPermission: async (payload: Permission) => {
     try {
       await API.post(PERMISSIONS, payload);
     } catch (error) {
-      console.log('🚀 ~ fetchPermissions: ~ error:', error);
+      // console.log('fetchPermissions: ~ error:', error);
     }
   },
 }));

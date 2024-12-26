@@ -17,21 +17,21 @@ import { useTaskStore } from '../../store/useTasksStore';
 import {
   AccessMethods,
   AccessModules,
+  ROLES,
   TaskPriority,
   TaskStatus,
 } from '../../common/enums';
 import renderWithAccessControl from '../../common/access-control';
 import { useProjectStore } from '../../store/useProjectStore';
-import {
-  darkModeStyles,
-  lightModeStyles,
-} from '../../common/react-select.styles';
-import AsyncSelect from 'react-select/async';
+
 import { useCommonStore } from '../../store/useCommonStore';
 import { useTeamStore } from '../../store/useTeamStore';
 import { TaskQuery } from '../../types/useTasksStore.types';
 import { useLoginStore } from '../../store/useLoginStore';
 import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { getTaskMembersRoles } from '../../common/utils';
+import { User } from '../../types/user.types';
 
 const validationSchema = yup.object().shape({
   drawingTitle: yup.string().required('Title is required'),
@@ -42,7 +42,7 @@ const validationSchema = yup.object().shape({
     .oneOf(Object.keys(TaskPriority))
     .required('Priority is required'),
   assignedToId: yup
-    .object()
+    .string()
     .typeError('Assignee is required')
     .required('Assignee is required'),
   dueDate: yup
@@ -55,9 +55,10 @@ type Props = { query: TaskQuery; skip: number; limit: number };
 
 const AddTaskDialog = ({ query, skip, limit }: Props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isDarkMode } = useCommonStore();
+  const [taskMembers, setTaskMembers] =
+    useState<{ value: string; label: string }[]>();
   const { addTask, fetchTasks } = useTaskStore();
-  const { fetchMembers } = useTeamStore();
+  const { fetchTaskMembers } = useTeamStore();
   const { fetchProjects, projects } = useProjectStore();
   const {
     control,
@@ -72,7 +73,6 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
 
   const onSubmit = async (data: any) => {
     data.status = TaskStatus.PENDING.toUpperCase();
-    data.assignedToId = data.assignedToId.value;
 
     const { projectId, ...rest } = data;
 
@@ -95,40 +95,45 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
         paginate: false,
         select: ['projectId', 'name'],
       });
+      loadMembersOptions();
     }
   }, [isModalOpen]);
 
   const { authenticatedUserRoleId, user } = useLoginStore();
-  const loadMembersOptions = async (inputValue: string = '') => {
+
+  async function loadMembersOptions() {
     const query: any = {
       paginate: false,
       relation: true,
-      // select: ['userId', 'name', 'email'],
+      projectId: '*',
     };
-    if (inputValue) query['name'] = inputValue;
-
-    let formattedOptions;
-
-    if (!['TEAM_LEAD', 'DIRECTOR'].includes(authenticatedUserRoleId)) {
-      formattedOptions = [
+    if (
+      [ROLES.ARCHITECT, ROLES.DRAUGHTSMAN].includes(
+        authenticatedUserRoleId as ROLES,
+      )
+    ) {
+      setTaskMembers([
         {
           value: user?.userId!,
-          label: `${user?.name}`,
+          label: `${user?.name} (${authenticatedUserRoleId
+            .toLowerCase()
+            .replace(/^[a-z]/, (char) => char.toUpperCase())
+            .replaceAll(/_/g, ' ')})`,
         },
-      ];
+      ]);
     } else {
-      const data = await fetchMembers(query);
-      formattedOptions = data.data.map((option) => {
-        const role = option['userRole']?.at(0)?.role?.name ?? '';
-        return {
-          value: option.userId,
-          label: `${option.name} ${role ? `(${role})` : ''} `,
-        };
-      });
+      const data = await fetchTaskMembers(query);
+      setTaskMembers(
+        data.data.map((option: User & { role?: string }) => {
+          const role = option?.['role'];
+          return {
+            value: option.userId,
+            label: `${option?.['name']} ${role ? `(${role})` : ''}`,
+          };
+        }),
+      );
     }
-
-    return formattedOptions;
-  };
+  }
 
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -147,7 +152,7 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
         '',
       )}
 
-      <DialogContent className="w-[95%] md:w-1/2 bg-white dark:bg-slate-900 text-black dark:text-white shadow-xl border-0">
+      <DialogContent className="w-[95%] md:w-1/2 max-w-2xl bg-white dark:bg-slate-900 text-black dark:text-white shadow-xl border-0">
         <DialogHeader>
           <DialogTitle>Add Task</DialogTitle>
           <DialogDescription className="text-xs">
@@ -157,28 +162,17 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="overflow-y-auto h-[calc(100vh-50vh)] max-h-[calc(100vh-30%)] scrollbar md:px-5 flex flex-col gap-2 text-xs"
+          className="overflow-y-auto h-[calc(100vh-50vh)] max-h-[calc(100vh-30%)] scrollbar md:px-5 md:grid md:grid-cols-2 gap-2 text-xs"
         >
           <div className="flex flex-col">
             <label className="text-xs">Title:</label>
             <input
-              className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
+              className="px-2 py-2.5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
               {...register('drawingTitle')}
               placeholder="Enter Drawing title"
             />
             <p className="text-red-500 text-[9px]">
               {errors?.drawingTitle?.message}
-            </p>
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs">Description:</label>
-            <textarea
-              className="px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
-              {...register('description')}
-              placeholder="Enter description"
-            />
-            <p className="text-red-500 text-[9px]">
-              {errors?.description?.message}
             </p>
           </div>
 
@@ -190,11 +184,11 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
               render={({ field }) => (
                 <select
                   {...field}
-                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                  className="py-2.5 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
                   // defaultValue={projects?.data?.at(0)?.projectId}
                   defaultValue={''}
                 >
-                  <option value="" disabled className="text-sm">
+                  <option value="" disabled className="text-xs">
                     Select Project
                   </option>
                   {projects?.data?.map((p) => (
@@ -209,6 +203,17 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
               {errors?.projectId?.message}
             </p>
           </div>
+          <div className="flex flex-col col-span-2">
+            <label className="text-xs">Description:</label>
+            <textarea
+              className="px-2 py-2.5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
+              {...register('description')}
+              placeholder="Enter description"
+            />
+            <p className="text-red-500 text-[9px]">
+              {errors?.description?.message}
+            </p>
+          </div>
 
           <div className="flex flex-col">
             <label className="text-xs">Assignee:</label>
@@ -216,18 +221,20 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
               name="assignedToId"
               control={control}
               render={({ field }) => (
-                <AsyncSelect
+                <select
                   {...field}
-                  defaultOptions
-                  loadOptions={loadMembersOptions as any}
-                  styles={isDarkMode ? darkModeStyles : lightModeStyles}
-                  placeholder={
-                    <span className="text-slate-500">Select members</span>
-                  }
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  onChange={(selected) => field.onChange(selected)}
-                />
+                  defaultValue=""
+                  className="py-2.5 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                >
+                  <option value="" disabled className="text-xs">
+                    Select Assignee
+                  </option>
+                  {taskMembers?.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               )}
             />
             <p className="text-red-500 text-[9px]">
@@ -244,9 +251,9 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
                 <select
                   {...field}
                   defaultValue=""
-                  className="py-2 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                  className="py-2.5 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
                 >
-                  <option value="" disabled className="text-sm">
+                  <option value="" disabled className="text-xs">
                     Select Priority
                   </option>
                   {Object.entries(TaskPriority).map(([key, priority]) => (
@@ -262,15 +269,17 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
             </p>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs">Start Date:</label>
+            <label className="text-xs">Due Date:</label>
             <Controller
               name="dueDate"
               control={control}
               render={({ field }) => (
                 <DatePicker
+                  autoComplete="false"
                   placeholderText="Select start date"
                   className="w-full px-2 py-2.5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
                   {...field}
+                  minDate={new Date()}
                   selected={field.value ? new Date(field.value) : null}
                   onChange={(date: Date | null) => field.onChange(date)}
                   dateFormat="yyyy/MM/dd"
@@ -284,7 +293,7 @@ const AddTaskDialog = ({ query, skip, limit }: Props) => {
 
           <button
             type="submit"
-            className="p-2 my-2 block bg-primary hover:bg-primary/90 rounded-md text-white"
+            className="col-span-2 p-2 my-2 block bg-primary hover:bg-primary/90 rounded-md text-white"
           >
             Save Task
           </button>

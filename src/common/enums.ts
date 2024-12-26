@@ -1,8 +1,8 @@
 export enum TaskStatus {
   PENDING = 'Pending',
   IN_PROGRESS = 'In Progress',
-  DONE = 'Done',
   COMPLETED = 'Completed',
+  REJECTED = 'Rejected',
   ON_HOLD = 'On Hold',
   IN_REVIEW = 'In Review',
 }
@@ -16,9 +16,9 @@ export const TaskStatusColors = {
     text: 'text-white',
     bg: 'bg-yellow-600', // Yellow represents active work or ongoing progress
   },
-  DONE: {
+  REJECTED: {
     text: 'text-white',
-    bg: 'bg-purple-600', // purple represents a successfully completed task
+    bg: 'bg-red-600', // Yellow represents active work or ongoing progress
   },
   COMPLETED: {
     text: 'text-white',
@@ -171,3 +171,10 @@ export enum RolesEnum {
 
 export const EMAIL_REGEXP =
   /^(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:\\[\x01-\x09\x0b\x0c\x0e-\x7f]|[^"\\\r\n])*")@(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}|(?:\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-zA-Z0-9-]*[a-zA-Z0-9]:[^\x00-\x20\x7f-\xff]+)\]))/;
+
+export enum ROLES {
+  'DIRECTOR' = 'DIRECTOR',
+  'DRAUGHTSMAN' = 'DRAUGHTSMAN',
+  'ARCHITECT' = 'ARCHITECT',
+  'TEAM_LEAD' = 'TEAM_LEAD',
+}

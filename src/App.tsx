@@ -14,13 +14,13 @@ const DefaultLayout = lazy(() => import('./layout/DefaultLayout'));
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const { getAuthDetails, isAuthenticated, feScopes } = useLoginStore();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
-  const navigate = useNavigate();
-  const location = useLocation();
   useEffect(() => {
     const isAuthRoute = location.pathname.startsWith('/auth/');
     if (!isAuthenticated && !feScopes?.length) {

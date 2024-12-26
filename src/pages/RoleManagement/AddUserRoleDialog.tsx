@@ -27,7 +27,7 @@ import { useCommonStore } from '../../store/useCommonStore';
 import { useTeamStore } from '../../store/useTeamStore';
 
 const validationSchema = yup.object().shape({
-  roleId: yup.string().required('roleId is required'),
+  roleId: yup.string().required('roleId is required').trim(),
   userId: yup
     .object()
     .typeError('User is required')
@@ -36,8 +36,8 @@ const validationSchema = yup.object().shape({
     .array()
     .of(
       yup.object().shape({
-        key: yup.string().required('key is required'),
-        value: yup.string().required('Value is required'),
+        key: yup.string().required('key is required').trim(),
+        value: yup.string().required('Value is required').trim(),
       }),
     )
     .test('unique-keys', 'Role entity keys must be unique', (value) => {
@@ -92,7 +92,6 @@ const AddUserRoleDialog = () => {
 
   const onSubmit = async (data: any) => {
     const convertedObject = transformObject(data);
-    console.log('🚀 ~ onSubmit ~ convertedObject:', convertedObject);
 
     if (convertedObject) {
       const success = await addUserRoles(convertedObject);
@@ -109,7 +108,10 @@ const AddUserRoleDialog = () => {
       userId: input.userId.value,
       permissionEntities: input.permissionEntities.reduce(
         (prevValue, currentValue) => {
-          return { ...prevValue, [currentValue.key]: currentValue.value };
+          return {
+            ...prevValue,
+            [currentValue.key]: currentValue.value?.split(','),
+          };
         },
         {},
       ),
@@ -277,10 +279,11 @@ const AddUserRoleDialog = () => {
                     placeholder="Enter key"
                   />
 
-                  <input
+                  <textarea
                     {...register(`permissionEntities.${index}.value` as const)}
                     placeholder="Enter value"
-                    className="flex-grow px-2 py-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
+                    rows={1}
+                    className="flex-grow px-2 py-2 overflow-y-auto rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent"
                   />
 
                   <button

@@ -61,7 +61,6 @@ const SignIn = () => {
                   <input
                     type="email"
                     {...register('username')}
-                    defaultValue={'pratikh@gmail.com'}
                     placeholder="Enter your email"
                     className="w-full rounded-lg border text-black dark:text-white border-stroke bg-transparent py-3 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
@@ -80,24 +79,21 @@ const SignIn = () => {
                   <input
                     type={!showPassword ? 'password' : 'text'}
                     {...register('password')}
-                    defaultValue={'Pratik@123'}
                     placeholder="Enter your password"
                     className="w-full rounded-lg border text-black dark:text-white border-stroke bg-transparent py-3 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
 
-                  <span className="absolute right-4 top-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                  >
                     {showPassword ? (
-                      <LockKeyhole
-                        className="text-slate-400 cursor-pointer"
-                        onClick={() => setShowPassword(false)}
-                      />
+                      <LockKeyhole className="text-slate-400 cursor-pointer" />
                     ) : (
-                      <LockKeyholeOpen
-                        className="text-slate-400 cursor-pointer"
-                        onClick={() => setShowPassword(true)}
-                      />
+                      <LockKeyholeOpen className="text-slate-400 cursor-pointer" />
                     )}
-                  </span>
+                  </button>
                 </div>
               </div>
 

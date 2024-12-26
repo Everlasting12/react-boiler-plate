@@ -7,6 +7,9 @@ const Tasks = lazy(() => import('../pages/Tasks/Tasks'));
 const Task = lazy(() => import('../pages/Tasks/Task'));
 const Project = lazy(() => import('../pages/Project/Project'));
 const Teams = lazy(() => import('../pages/Teams/Teams'));
+const Users = lazy(() => import('../pages/Users/Users'));
+const AddUser = lazy(() => import('../pages/Users/AddUser'));
+const UsersTable = lazy(() => import('../pages/Users/UsersTable'));
 const Approvals = lazy(() => import('../pages/Approvals/Approvals'));
 const Chart = lazy(() => import('../pages/Chart'));
 const FormElements = lazy(() => import('../pages/Form/FormElements'));
@@ -58,6 +61,22 @@ const coreRoutes = [
     title: 'Approvals',
     component: Approvals,
   },
+  {
+    path: '/users',
+    title: 'Users',
+    component: Users,
+  },
+  {
+    path: '/users/table',
+    title: 'Users',
+    component: UsersTable,
+  },
+  {
+    path: '/users/add',
+    title: 'Users',
+    component: AddUser,
+  },
+
   // {
   //   path: '/calendar',
   //   title: 'Calender',

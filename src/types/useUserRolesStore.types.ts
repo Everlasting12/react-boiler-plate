@@ -12,7 +12,7 @@ export type UserRoles = {
   createdAt: Date;
   updatedAt: Date;
   role?: Pick<Roles, 'name' | 'permissionIds' | 'roleId'>;
-  user?: Pick<User, 'name' | 'email'>;
+  user?: Pick<User, 'name' | 'email' | 'userId'>;
 };
 
 export interface UserRolesQuery extends Query {

@@ -9,13 +9,14 @@ import {
 import AsyncSelect from 'react-select/async';
 
 import 'react-datepicker/dist/react-datepicker.css';
-import Select, { SingleValue } from 'react-select';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CirclePlus } from 'lucide-react';
 import SecondaryButton from '../../my-components/SecondaryButton';
-import { useEffect, useState } from 'react';
+import {
+  useState,
+} from 'react';
 import { ProjectQuery } from '../../types/useProjectStore.types';
 import { useTeamStore } from '../../store/useTeamStore';
 import {
@@ -23,12 +24,12 @@ import {
   lightModeStyles,
 } from '../../common/react-select.styles';
 import { useCommonStore } from '../../store/useCommonStore';
-import { useProjectStore } from '../../store/useProjectStore';
+// import { useProjectStore } from '../../store/useProjectStore';
 import { UserRolesQuery } from '../../types/useUserRolesStore.types';
 
 const validationSchema = yup.object().shape({
   name: yup.string().required('Team name is required'),
-  projectId: yup.string().required('Project is required'),
+  // projectId: yup.string().required('Project is required'),
   members: yup
     .array()
     .typeError('Members are required')
@@ -45,7 +46,7 @@ type Props = { query: ProjectQuery; skip: number; limit: number };
 const AddProjectDialog = ({ query, skip, limit }: Props) => {
   const { isDarkMode } = useCommonStore();
   const { fetchMembers, fetchTeamLeads, addTeam, fetchTeams } = useTeamStore();
-  const { fetchProjects, projects } = useProjectStore();
+  // const { fetchProjects, projects } = useProjectStore();
   const {
     control,
     register,
@@ -61,7 +62,7 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
     const { members, teamLeadId } = data;
     data.members = members.map((m: { value: string }) => m.value);
     data.teamLeadId = teamLeadId.value;
-    console.log('🚀 ~ onSubmit ~ data:', data);
+
     const success = await addTeam(data);
     if (success) {
       reset();
@@ -90,7 +91,7 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
 
     return formattedOptions;
   };
-  const loadTeamLeadsOptions = async (inputValue: string = '') => {
+  const loadTeamLeadsOptions = async (_inputValue: string = '') => {
     const query: UserRolesQuery = {
       paginate: false,
       roleId: ['TEAM_LEAD'],
@@ -105,14 +106,14 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
     return formattedOptions;
   };
 
-  useEffect(() => {
-    if (isModalOpen) {
-      fetchProjects({
-        paginate: false,
-        select: ['projectId', 'name'],
-      });
-    }
-  }, [isModalOpen]);
+  // useEffect(() => {
+  //   if (isModalOpen) {
+  //     fetchProjects({
+  //       paginate: false,
+  //       select: ['projectId', 'name'],
+  //     });
+  //   }
+  // }, [isModalOpen]);
 
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -150,7 +151,7 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
             <p className="text-red-500 text-[9px]">{errors?.name?.message}</p>
           </div>
 
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <label className="text-xs">Project:</label>
             <Controller
               name="projectId"
@@ -172,7 +173,7 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
             <p className="text-red-500 text-[9px]">
               {errors?.projectId?.message}
             </p>
-          </div>
+          </div> */}
 
           <div className="flex flex-col">
             <label className="text-xs">Team Lead:</label>
@@ -192,8 +193,6 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
                   className="react-select-container"
                   classNamePrefix="react-select"
                   onChange={(selected) => {
-                    console.log('🚀 ~ AddProjectDialog ~ selected:', selected);
-
                     field.onChange(selected);
                   }}
                 />
@@ -223,8 +222,6 @@ const AddProjectDialog = ({ query, skip, limit }: Props) => {
                   className="react-select-container"
                   classNamePrefix="react-select"
                   onChange={(selected) => {
-                    console.log('🚀 ~ AddProjectDialog ~ selected:', selected);
-
                     field.onChange(selected);
                   }}
                 />

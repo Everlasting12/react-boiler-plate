@@ -10,7 +10,7 @@ export const useRoleStore = create<RolesStoreType>((set) => ({
       const res = await API.get(ROLES, { params: query });
       set({ roles: res.data });
     } catch (error) {
-      console.log('🚀 ~ fetchRoles: ~ error:', error);
+      // console.log('fetchRoles: ~ error:', error);
     }
   },
 }));

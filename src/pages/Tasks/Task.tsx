@@ -21,6 +21,13 @@ const Task = () => {
     task?.status as keyof typeof TaskStatus,
   );
 
+  // modal for a comment on rejection or completion of the task status
+  const [showModal, setShowModal] = useState(false);
+  const [comment, setComment] = useState('');
+  const [pendingStatus, setPendingStatus] = useState<
+    keyof typeof TaskStatus | null
+  >(null);
+
   useEffect(() => {
     if (taskId) {
       fetchTaskByTaskId(taskId);
@@ -55,7 +62,7 @@ const Task = () => {
     performTaskAction(task.taskId!, task.projectId!, payload);
     setTaskComment('');
   };
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = (value: string, comment?: string) => {
     const payload = {
       status: value,
       action: {
@@ -64,6 +71,7 @@ const Task = () => {
           from: task.status,
           userId: user?.userId,
           to: value,
+          ...(comment && { text: comment }),
         },
       },
     };
@@ -80,6 +88,27 @@ const Task = () => {
     performTaskAction(task.taskId!, task.projectId!, {
       drawingTitle: value,
     });
+  };
+
+  const handleModalSubmit = () => {
+    if (
+      TaskStatus[pendingStatus as keyof typeof TaskStatus] ===
+        TaskStatus.REJECTED &&
+      !comment.trim()
+    ) {
+      toast.error('Please provide a valid comment.', {
+        position: 'top-center',
+        duration: 3000,
+      });
+      return;
+    }
+
+    setTaskStatus(pendingStatus as keyof typeof TaskStatus);
+    pendingStatus !== task.status &&
+      handleStatusChange(pendingStatus!, comment);
+    setShowModal(false);
+    setComment('');
+    setPendingStatus(null);
   };
   return (
     <div className="w-full font-sans md:grid md:grid-cols-5 grow my-3 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -167,8 +196,13 @@ const Task = () => {
                 return;
               }
 
-              setTaskStatus(value as keyof typeof TaskStatus);
-              value !== task.status && handleStatusChange(value);
+              if (value === 'REJECTED' || value === 'COMPLETED') {
+                setPendingStatus(value); // Store the selected status temporarily
+                setShowModal(true); // Show the modal for comments
+              } else {
+                setTaskStatus(value as keyof typeof TaskStatus);
+                value !== task.status && handleStatusChange(value);
+              }
             }}
           >
             <SelectTrigger
@@ -208,6 +242,43 @@ const Task = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal for comment */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded shadow-lg max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">
+              Provide a reason for{' '}
+              {TaskStatus[pendingStatus as keyof typeof TaskStatus]}:
+            </h3>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:text-white"
+              rows={4}
+              placeholder="Enter your comment here..."
+            />
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded text-sm"
+                onClick={() => {
+                  setShowModal(false);
+                  setComment('');
+                  setPendingStatus(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded text-sm"
+                onClick={handleModalSubmit}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

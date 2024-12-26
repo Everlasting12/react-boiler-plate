@@ -19,13 +19,11 @@ export const useProjectStore = create<ProjectStoreType>((set) => ({
 
       set({ projects: res.data });
     } catch (error) {
-      console.log('🚀 ~ fetchProjects: ~ error:', error);
+      //  console.log('fetchProjects: ~ error:', error);
     }
   },
   addProject: async (payload: Project) => {
     try {
-      // TODO:
-      // payload.createdById get the user id from sub or state
       const res = await API.post(PROJECTS, payload);
 
       if (res.status == 201) {
@@ -35,7 +33,7 @@ export const useProjectStore = create<ProjectStoreType>((set) => ({
       return false;
     } catch (error) {
       toast.error('Project could not be added!');
-      console.log('🚀 ~ addProject: ~ error:', error);
+      //  console.log('addProject: ~ error:', error);
       return false;
     }
   },
@@ -50,7 +48,7 @@ export const useProjectStore = create<ProjectStoreType>((set) => ({
       return false;
     } catch (error) {
       toast.error('Project could not be edited!');
-      console.log('🚀 ~ editProject: ~ error:', error);
+      // console.log('editProject: ~ error:', error);
       return false;
     }
   },

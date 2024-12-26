@@ -21,7 +21,7 @@ const DefaultLayout = () => {
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
-          <main className="grow p-5">
+          <main className="grow p-5 bg-white dark:bg-black">
             {/* <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:px-10 2xl:py-2"> */}
             <Outlet />
             {/* </div> */}

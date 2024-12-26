@@ -16,7 +16,7 @@ export const useUserRolesStore = create<UserRolesStoreType>((set) => ({
       const res = await API.get(USER_ROLES, { params: query });
       set({ userRoles: res.data });
     } catch (error) {
-      console.log('🚀 ~ fetchUserRoless: ~ error:', error);
+      // console.log('fetchUserRoless: ~ error:', error);
     }
   },
   fetchUsers: async (query: UserQuery) => {
@@ -26,7 +26,7 @@ export const useUserRolesStore = create<UserRolesStoreType>((set) => ({
       });
       return data;
     } catch (error) {
-      console.log('🚀 ~ fetchUsers: ~ error:', error);
+      // console.log('fetchUsers: ~ error:', error);
       return { data: [], limit: query.limit, skip: query.skip, total: 0 };
     }
   },
@@ -41,7 +41,7 @@ export const useUserRolesStore = create<UserRolesStoreType>((set) => ({
       return false;
     } catch (error) {
       toast.error('User role assignment failed!');
-      console.log('🚀 ~ fetchUsers: ~ error:', error);
+      // console.log('fetchUsers: ~ error:', error);
       return false;
     }
   },

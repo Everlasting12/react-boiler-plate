@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { ROLES } from './enums';
 
 dayjs.extend(relativeTime);
 
@@ -77,3 +78,48 @@ export const getModifiedFields = <T extends object, N extends object>(
 
   return updatedFields;
 };
+
+export const getTaskMembersRoles = (role: string) => {
+  switch (role) {
+    case ROLES.DIRECTOR:
+      return Object.keys(ROLES);
+    case ROLES.TEAM_LEAD:
+      return [ROLES.DRAUGHTSMAN, ROLES.ARCHITECT, ROLES.TEAM_LEAD];
+    case ROLES.ARCHITECT:
+      return [ROLES.ARCHITECT];
+    case ROLES.DRAUGHTSMAN:
+      return [ROLES.DRAUGHTSMAN];
+    default:
+      return [ROLES.ARCHITECT, ROLES.DRAUGHTSMAN];
+  }
+};
+
+export const getEmail = (object: any) => {
+  const { recipient, projectName, name, subject, title } = object;
+  return `mailto:${recipient}?subject=${encodeURIComponent(
+    subject,
+  )}&body=${encodeURIComponent(`Dear Sir/Madam,
+
+Please find attached PDF/CAD file containing the following drawings:
+${title}
+
+Project name:
+${projectName}
+
+Coordinating with:
+
+Comments/Revisions:
+
+Regards,
+Ar. ${name}
+Horizon Architects.
+M/s. Horizon Architects 
+Unit No. 1, 2nd Floor, 
+Washington Plaza Co-Op. Society Ltd., 
+Dispensary Road, Topiwala Lane, 
+Goregaon (W), Mumbai -  400104
+Off Tel No - 022-49700915
+  `)}`;
+};
+
+// <a href="https://ibb.co/GTRKh0K"><img src="https://i.ibb.co/Rycx59x/image.png" alt="image" border="0"></a>

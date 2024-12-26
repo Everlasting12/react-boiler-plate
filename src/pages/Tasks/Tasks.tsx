@@ -10,38 +10,60 @@ import {
   ProjectCategory,
   TaskPriority,
   TaskPriorityColors,
+  ROLES,
+  TaskEvents,
 } from '../../common/enums';
 import { Mail, Send } from 'lucide-react';
-import EditTaskDialog from './EditTaskDialog';
 import { Link } from 'react-router-dom';
 import { useLoginStore } from '../../store/useLoginStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { getEmail } from '../../common/utils';
 const Tasks = () => {
-  const { authenticatedUserRoleId, permissionEntities, user } = useLoginStore();
-  const { fetchTasks, tasks, sendTaskToTeamLead } = useTaskStore();
+  const { authenticatedUserRoleId, user } = useLoginStore();
+  const { fetchTasks, tasks, performTaskAction } = useTaskStore();
   const { fetchProjects, projects } = useProjectStore();
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(10);
   const [query, _setQuery] = useState<TaskQuery>({
     paginate: true,
     isActive: true,
-    projectId: permissionEntities['projectId']?.at(0),
     relation: true,
+    accessLevel: true,
     priority: undefined,
+    status:
+      ![ROLES.DRAUGHTSMAN, ROLES.ARCHITECT].includes(
+        authenticatedUserRoleId as ROLES,
+      ) && authenticatedUserRoleId !== ROLES.DIRECTOR
+        ? Object.keys(TaskStatus).filter(
+            (status) => !['IN_REVIEW', 'COMPLETED'].includes(status),
+          )
+        : undefined,
   });
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [task, setTask] = useState<undefined | TaskType>(undefined);
 
   useEffect(() => {
     fetchProjects({
       paginate: false,
       isActive: true,
       select: ['name', 'projectId'],
-      ...(permissionEntities['projectId']?.at(0) == '*'
-        ? {}
-        : { projectId: permissionEntities['projectId'] }),
     });
   }, []);
+
+  const handleStatusChange = (task: TaskType, value: string) => {
+    const payload = {
+      status: value,
+      action: {
+        eventType: TaskEvents.STATUS_CHANGE,
+        details: {
+          from: task.status,
+          userId: user?.userId,
+          to: value,
+        },
+      },
+    };
+
+    performTaskAction(task.taskId!, task.projectId!, payload);
+    fetchTasks({ ...query, skip, limit, paginate: true });
+  };
 
   const columns: ColumnDef[] = [
     {
@@ -151,38 +173,38 @@ const Tasks = () => {
       type: 'element',
       render: (row: TaskType) => (
         <div className="flex gap-2">
-          <button
-            title="send task to review"
-            onClick={() => {
-              sendTaskToTeamLead(row.taskId, row.projectId);
-            }}
-            className="flex items-center justify-center p-1.5 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
-          >
-            <Send size={14} />
-          </button>
-
-          <a
-            target="_blank"
-            href={`mailto:?subject=${encodeURIComponent(
-              `Request for a review - ${row?.drawingTitle}`,
-            )}&body=${encodeURIComponent(
-              `Hi,
-
-Task title: ${row?.drawingTitle ?? ''}
-Task description: ${row?.description ?? 'NA'}
-
-Thanks and regards,
-${user?.name ?? ''}`,
-            )}`}
-            rel="noopener noreferrer"
-          >
+          {user?.userId === row.assignedToId && (
             <button
-              title="Send Email"
+              title="send task to review"
+              onClick={() => {
+                handleStatusChange(row, 'IN_REVIEW');
+              }}
               className="flex items-center justify-center p-1.5 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
             >
-              <Mail size={14} />
+              <Send size={14} />
             </button>
-          </a>
+          )}
+
+          {row.status === 'COMPLETED' && (
+            <a
+              target="_blank"
+              href={getEmail({
+                recipient: row?.project?.clientEmailId,
+                projectName: row?.project?.name,
+                name: user?.name ?? '',
+                subject: `${row?.project?.name} - ${row?.drawingTitle}`,
+                title: row?.drawingTitle ?? '',
+              })}
+              rel="noopener noreferrer"
+            >
+              <button
+                title="Send Email"
+                className="flex items-center justify-center p-1.5 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
+              >
+                <Mail size={14} />
+              </button>
+            </a>
+          )}
         </div>
       ),
     },
@@ -215,42 +237,66 @@ ${user?.name ?? ''}`,
               ))}
             </select>
           </label>
-          <label htmlFor="projects" className="text-sm">
-            Projects:{' '}
-            <select
-              id="projects"
-              defaultValue=""
-              className="py-1 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
-              onChange={(e) => {
-                if (e?.target?.value) {
-                  _setQuery({
-                    ...query,
-                    projectId: [e.target.value].join(','),
-                  });
-                }
-              }}
-            >
-              <option value="" disabled className="text-sm">
-                Select Project
-              </option>
-              {projects?.data?.map((project) => (
-                <option key={project?.projectId} value={project?.projectId}>
-                  {project?.name}
+          {[ROLES.DIRECTOR, ROLES.TEAM_LEAD].includes(
+            authenticatedUserRoleId as ROLES,
+          ) && (
+            <label htmlFor="projects" className="text-sm">
+              Projects:{' '}
+              <select
+                id="projects"
+                defaultValue=""
+                className="py-1 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                onChange={(e) => {
+                  if (e?.target?.value) {
+                    _setQuery({
+                      ...query,
+                      projectId: [e.target.value],
+                    });
+                  }
+                }}
+              >
+                <option value="" disabled className="text-sm">
+                  Select Project
                 </option>
-              ))}
-            </select>
-          </label>
+                {projects?.data?.map((project) => (
+                  <option key={project?.projectId} value={project?.projectId}>
+                    {project?.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
+          {[ROLES.DIRECTOR].includes(authenticatedUserRoleId as ROLES) && (
+            <label htmlFor="status" className="text-sm">
+              Status:{' '}
+              <select
+                id="status"
+                value={query.status}
+                className="py-1 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+                onChange={(e) => {
+                  if (e?.target?.value) {
+                    _setQuery({
+                      ...query,
+                      status: [e.target.value],
+                    });
+                  }
+                }}
+              >
+                <option value="" disabled className="text-sm">
+                  Select Status
+                </option>
+
+                {Object.entries(TaskStatus)?.map(([key, status]) => (
+                  <option key={key} value={key}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <AddTaskDialog limit={limit} query={query} skip={skip} />
         </div>
-        <EditTaskDialog
-          query={query}
-          skip={skip}
-          limit={limit}
-          isEditModalOpen={isEditModalOpen}
-          setIsEditModalOpen={setIsEditModalOpen}
-          task={task}
-        />
         <Table
           name={'Tasks'}
           columns={columns}

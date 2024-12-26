@@ -6,10 +6,11 @@ import {
   TeamStoreType,
 } from '../types/useTeamStore.types';
 import API from '../common/api';
-import { TEAMS, USER_ROLES, USERS } from '../common/endpoints';
+import { TASKS, TEAMS, USER_ROLES, USERS } from '../common/endpoints';
 import { replaceUrlParams } from '../common/utils';
 import toast from 'react-hot-toast';
 import { UserRolesQuery } from '../types/useUserRolesStore.types';
+import { TaskQuery } from '../types/useTasksStore.types';
 
 export const useTeamStore = create<TeamStoreType>((set, get) => ({
   teams: { data: [], limit: 10, skip: 0, total: 0 },
@@ -20,7 +21,7 @@ export const useTeamStore = create<TeamStoreType>((set, get) => ({
       });
       set({ teams: res.data });
     } catch (error) {
-      console.log('🚀 ~ fetchTeams: ~ error:', error);
+      // console.log('fetchTeams: ~ error:', error);
     }
   },
   addTeam: async (payload: Team) => {
@@ -36,7 +37,7 @@ export const useTeamStore = create<TeamStoreType>((set, get) => ({
       return false;
     } catch (error) {
       toast.error('Team could not be added!');
-      console.log('🚀 ~ addTeam: ~ error:', error);
+      // console.log('addTeam: ~ error:', error);
       return false;
     }
   },
@@ -47,10 +48,36 @@ export const useTeamStore = create<TeamStoreType>((set, get) => ({
       });
       return data;
     } catch (error) {
-      console.log('🚀 ~ fetchMembers: ~ error:', error);
+      // console.log('fetchMembers: ~ error:', error);
       return { data: [], limit: query.limit, skip: query.skip, total: 0 };
     }
   },
+  fetchTaskMembers: async (query: TaskQuery) => {
+    try {
+      const { data } = await API.get(
+        replaceUrlParams(`${TASKS}/members`, query),
+        {
+          params: query,
+        },
+      );
+      return data;
+    } catch (error) {
+      // console.log('fetchMembers: ~ error:', error);
+      return { data: [], limit: query.limit, skip: query.skip, total: 0 };
+    }
+  },
+  // fetchTaskMembers: async (query: MemberQuery) => {
+  //   try {
+  //     const { data } = await API.get(USER_ROLES, {
+  //       params: query,
+  //     });
+  //     return data;
+  //   } catch (error) {
+  //     console.log('fetchMembers: ~ error:', error);
+  //     return { data: [], limit: query.limit, skip: query.skip, total: 0 };
+  //   }
+  // },
+
   fetchTeamLeads: async (query: UserRolesQuery) => {
     try {
       const { data } = await API.get(USER_ROLES, {
@@ -58,7 +85,7 @@ export const useTeamStore = create<TeamStoreType>((set, get) => ({
       });
       return data;
     } catch (error) {
-      console.log('🚀 ~ fetchTeamLeads: ~ error:', error);
+      // console.log('fetchTeamLeads: ~ error:', error);
       return { data: [], limit: query.limit, skip: query.skip, total: 0 };
     }
   },
@@ -79,7 +106,7 @@ export const useTeamStore = create<TeamStoreType>((set, get) => ({
       currentTeams.data = newTeams;
       set({ teams: currentTeams });
     } catch (error) {
-      console.log('🚀 ~ fetchTeams: ~ error:', error);
+      // console.log('fetchTeams: ~ error:', error);
     }
   },
 }));

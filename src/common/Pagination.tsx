@@ -50,34 +50,36 @@ const Pagination = ({
   ];
 
   return (
-    <div className="w-full py-2 flex mt-2 items-center justify-between">
+    <div className="w-full py-2 flex flex-col md:flex md:flex-row gap-2 mt-2 items-center justify-between">
       {/* Rows per page selector */}
-      <div className="flex flex-col lg:flex lg:flex-row gap-3 items-center">
-        <span className="text-sm">Rows per page</span>
-        <select
-          name="rowsPerPage"
-          className="rounded-md px-2 h-8 bg-slate-200 dark:bg-boxdark-2 cursor-pointer"
-          value={limit}
-          onChange={(e) => {
-            const value = parseInt(e.target.value, 10);
-            setLimit(value);
-            setSkip(0); // Reset to the first page on limit change
-          }}
-        >
-          {[5, 10, 20, 30, 40, 50].map((pageSize) => (
-            <option value={pageSize} key={pageSize}>
-              {pageSize}
-            </option>
-          ))}
-        </select>
+      <div className="w-full lg:w-fit flex lg:flex lg:flex-row gap-3 items-center justify-between">
+        <div className="flex gap-2 items-center">
+          <span className="text-sm">Rows per page</span>
+          <select
+            name="rowsPerPage"
+            className="rounded-md px-2 h-8 bg-slate-200 dark:bg-boxdark-2 cursor-pointer"
+            value={limit}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              setLimit(value);
+              setSkip(0); // Reset to the first page on limit change
+            }}
+          >
+            {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+              <option value={pageSize} key={pageSize}>
+                {pageSize}
+              </option>
+            ))}
+          </select>
+        </div>
         <span className="px-4 py-1.5 text-sm rounded-md bg-slate-200 dark:bg-boxdark-2">
           Total {name}: {total}
         </span>
       </div>
 
       {/* Pagination controls */}
-      <div className="flex flex-col lg:flex lg:flex-row items-center justify-center gap-5 font-medium text-neutral-400 md:text-sm">
-        <span>
+      <div className="w-full flex lg:flex lg:w-fit lg:flex-row items-center justify-between md:justify-center gap-5 font-medium text-neutral-400 md:text-sm">
+        <span className="text-sm">
           Page {currentPage} of {totalPages}
         </span>
         <div className="flex items-center gap-2">

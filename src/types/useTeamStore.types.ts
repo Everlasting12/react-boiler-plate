@@ -1,5 +1,6 @@
 import { Data, Query } from './common.types';
-import { UserRolesQuery } from './useUserRolesStore.types';
+import { User } from './user.types';
+import { UserRoles, UserRolesQuery } from './useUserRolesStore.types';
 
 export type Team = {
   id: string;
@@ -60,5 +61,6 @@ export interface TeamStoreType {
   showMembers: (teamId: string) => void;
   addTeam: (payload: Team) => Promise<undefined | boolean>;
   fetchMembers: (query: MemberQuery) => Promise<Data<Member>>;
+  fetchTaskMembers: (query: MemberQuery) => Promise<Data<User>>;
   fetchTeamLeads: (query: UserRolesQuery) => Promise<Data<TeamLeadOptionType>>;
 }

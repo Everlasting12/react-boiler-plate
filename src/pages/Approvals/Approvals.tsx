@@ -1,10 +1,21 @@
 import { useEffect, useState } from 'react';
 import Table, { ColumnDef } from '../../common/Table';
 import { useApprovalStore } from '../../store/useApprovalStore';
-import dayjs from 'dayjs';
-import { TaskQuery } from '../../types/useTasksStore.types';
+
+import { TaskQuery, Task as TaskType } from '../../types/useTasksStore.types';
 import { useLoginStore } from '../../store/useLoginStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import {
+  ProjectCategory,
+  ProjectCategoryColors,
+  TaskPriority,
+  TaskPriorityColors,
+  TaskStatus,
+  TaskStatusColors,
+} from '../../common/enums';
+import { Link } from 'react-router-dom';
+import { Mail } from 'lucide-react';
+import { getEmail } from '../../common/utils';
 
 const Approvals = () => {
   const { authenticatedUserRoleId, permissionEntities, user } = useLoginStore();
@@ -16,7 +27,9 @@ const Approvals = () => {
     paginate: true,
     isActive: true,
     relation: true,
-    projectId: permissionEntities['projectId']?.at(0),
+    accessLevel: true,
+    priority: undefined,
+    status: ['IN_REVIEW'],
   });
 
   useEffect(() => {
@@ -37,69 +50,116 @@ const Approvals = () => {
       type: 'sr_no',
     },
     {
-      key: 'name',
-      label: 'Name',
+      key: 'drawingTitle',
+      label: 'Title',
+      type: 'element',
+      render: (row: TaskType) => (
+        <Link
+          title="view task details"
+          to={`/tasks/${row?.taskId}`}
+          className="underline decoration-blue-500 text-blue-500"
+        >
+          {row?.drawingTitle}
+        </Link>
+      ),
+    },
+
+    {
+      key: 'priority',
+      label: 'Priority',
       type: 'text',
+      render: (row) => (
+        <span
+          className={`px-4 py-1 text-xs rounded-xl font-medium ${TaskPriorityColors[
+            row?.priority as keyof typeof TaskPriority
+          ]?.bg} ${TaskPriorityColors[
+            row?.priority as keyof typeof TaskPriority
+          ]?.text}`}
+        >
+          {TaskPriority[row?.priority as keyof typeof TaskPriority]}
+        </span>
+      ),
     },
     {
       key: 'project',
       label: 'Project',
       type: 'element',
-      render: (row) => <p className="max-w-[200px]">{row?.project?.name}</p>,
-    },
-    {
-      key: 'members',
-      label: 'Members',
-      type: 'element',
       render: (row) => (
-        <div className="flex flex-col items-start">
-          {row?.members?.length && !row?.membersData ? (
-            <button
-              onClick={() => showMembers(row.id)}
-              className="bg-slate-300 px-2 py-0.5 rounded-md text-black hover:bg-slate-200 dark:bg-black dark:text-white hover:dark:bg-slate-800"
-            >
-              Show Members
-            </button>
-          ) : (
-            row?.membersData?.map((m) => (
-              <span
-                key={m.userId}
-                className="py-0.5 px-2 my-0.5 bg-white dark:bg-slate-900/50 rounded-md"
-              >
-                {m.name} ({m.email})
-              </span>
-            ))
-          )}
+        <div className="flex gap-2">
+          <span
+            className={`px-2 py-0.5 text-xs rounded-xl ${ProjectCategoryColors[
+              row?.project?.category as keyof typeof ProjectCategory
+            ]?.bg} ${ProjectCategoryColors[
+              row?.project?.category as keyof typeof ProjectCategory
+            ]?.text}`}
+          >
+            {
+              ProjectCategory[
+                row?.project?.category as keyof typeof ProjectCategory
+              ]
+            }
+          </span>
+          <span>{row?.project?.name}</span>
         </div>
-        // <p className="max-w-[200px]">{JSON.stringify(row?.members)}</p>
       ),
     },
     {
-      key: 'teamLeadId',
-      label: 'Approval lead',
+      key: 'status',
+      label: 'Status',
       type: 'element',
       render: (row) => (
-        <span>
-          {row?.teamLead?.name} <br /> ({row?.teamLead?.email})
+        <span
+          className={`px-2 py-0.5 text-xs rounded-xl ${TaskStatusColors[
+            row?.status as keyof typeof TaskStatus
+          ]?.bg} ${TaskStatusColors[row?.status as keyof typeof TaskStatus]
+            ?.text}`}
+        >
+          {TaskStatus[row?.status as keyof typeof TaskStatus]}
         </span>
       ),
+    },
+    {
+      key: 'assignedTo',
+      label:
+        authenticatedUserRoleId === 'DIRECTOR'
+          ? 'Employee Name'
+          : 'Assigned to',
+      type: 'element',
+      render: (row) => <span>{row?.assignedTo?.name}</span>,
     },
     {
       key: 'createdBy',
       label: 'Created By',
       type: 'element',
-      render: (row) => (
-        <span>
-          {row?.createdBy?.name} <br /> ({row?.createdBy?.email})
-        </span>
-      ),
+      render: (row) => <span>{row?.createdBy?.name}</span>,
     },
     {
-      key: 'createdAt',
-      label: 'Created on',
+      key: 'Action',
+      label: 'Action',
       type: 'element',
-      render: (row) => (
-        <span>{dayjs(row?.createdAt).format('DD MMM YYYY')}</span>
+      render: (row: TaskType) => (
+        <div className="flex gap-2">
+          {row.status === 'COMPLETED' && (
+            <a
+              target="_blank"
+              href={getEmail({
+                recipient: row?.project?.clientEmailId,
+                projectName: row?.project?.name,
+                name: user?.name ?? '',
+                subject: `${row?.project?.name} - ${row?.drawingTitle}`,
+                title: row?.drawingTitle ?? '',
+              })}
+              rel="noopener noreferrer"
+            >
+              <button
+                title="Send Email"
+                className="flex items-center justify-center p-1.5 rounded-full dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
+              >
+                <Mail size={14} />
+              </button>
+            </a>
+          )}
+        </div>
       ),
     },
   ];
@@ -119,7 +179,7 @@ const Approvals = () => {
                 if (e?.target?.value) {
                   _setQuery({
                     ...query,
-                    projectId: [e.target.value].join(','),
+                    projectId: [e.target.value],
                   });
                 }
               }}
@@ -132,6 +192,37 @@ const Approvals = () => {
                   {project?.name}
                 </option>
               ))}
+            </select>
+          </label>
+
+          <label htmlFor="status" className="text-sm">
+            Status:{' '}
+            <select
+              id="status"
+              value={query.status}
+              className="py-1 px-2 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-transparent dark:bg-slate-900"
+              onChange={(e) => {
+                if (e?.target?.value) {
+                  _setQuery({
+                    ...query,
+                    status: [e.target.value],
+                  });
+                }
+              }}
+            >
+              <option value="" disabled className="text-sm">
+                Select Status
+              </option>
+
+              {Object.entries(TaskStatus)
+                ?.filter(([key, status]) =>
+                  [TaskStatus.IN_REVIEW, TaskStatus.COMPLETED].includes(status),
+                )
+                ?.map(([key, status]) => (
+                  <option key={key} value={key}>
+                    {status}
+                  </option>
+                ))}
             </select>
           </label>
         </div>

@@ -51,15 +51,28 @@ export type CreatedBy = {
 export interface Project {
   name: string;
   category?: string;
+  clientEmailId?: string;
+  clientName?: string;
 }
 
 export interface TaskQuery extends Query {
   name?: string[];
   isDefault?: boolean;
   relation?: boolean;
-  projectId?: string;
-  createdById?: string;
+  accessLevel?: boolean;
+  projectId?: string[];
   priority?: string[];
+  status?: string[];
+}
+
+export interface TaskActionQuery extends Query {
+  name?: string[];
+  isDefault?: boolean;
+  relation?: boolean;
+  accessLevel?: boolean;
+  projectId?: string;
+  priority?: string[];
+  status?: string[];
 }
 
 export interface TaskStoreType {
@@ -71,7 +84,6 @@ export interface TaskStoreType {
     projectId: string,
     payload: Partial<Task>,
   ) => Promise<boolean | undefined>;
-  sendTaskToTeamLead: (taskId: string, projectId: string) => void;
   task: undefined | Task;
   fetchTaskByTaskId: (taskId: string) => void;
   performTaskAction: (

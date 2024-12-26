@@ -4,24 +4,21 @@ import API from '../common/api';
 import { TASKS } from '../common/endpoints';
 import { replaceUrlParams } from '../common/utils';
 import toast from 'react-hot-toast';
-import { useLoginStore } from './useLoginStore';
 
 export const useTaskStore = create<TaskStoreType>((set, get) => ({
   tasks: { data: [], limit: 10, skip: 0, total: 0 },
   task: undefined,
   fetchTasks: async (query: TaskQuery) => {
     try {
-      const roleId = useLoginStore.getState().authenticatedUserRoleId;
-      if (!['TEAM_LEAD', 'DIRECTOR'].includes(roleId)) {
-        query.createdById = useLoginStore.getState().loggedInUserId;
-      }
-      console.log('🚀 ~ fetchTasks: ~ query:', query);
-      const res = await API.get(replaceUrlParams(TASKS, query), {
-        params: query,
-      });
+      const res = await API.get(
+        replaceUrlParams(TASKS, { ...query, projectId: '*' }),
+        {
+          params: query,
+        },
+      );
       set({ tasks: res.data });
     } catch (error) {
-      console.log('🚀 ~ fetchTasks: ~ error:', error);
+      // console.log('fetchTasks: ~ error:', error);
     }
   },
   addTask: async (projectId: string, payload: Task) => {
@@ -38,7 +35,7 @@ export const useTaskStore = create<TaskStoreType>((set, get) => ({
       return false;
     } catch (error) {
       toast.error('Task could not be created!');
-      console.log('🚀 ~ addTask: ~ error:', error);
+      // console.log('addTask: ~ error:', error);
       return false;
     }
   },
@@ -60,17 +57,8 @@ export const useTaskStore = create<TaskStoreType>((set, get) => ({
       return false;
     } catch (error) {
       toast.error('Task could not be edited!');
-      console.log('🚀 ~ editTask: ~ error:', error);
+      // console.log('editTask: ~ error:', error);
       return false;
-    }
-  },
-  sendTaskToTeamLead: async (taskId: string, projectId: string) => {
-    try {
-      const res = await API.patch(
-        replaceUrlParams(`${TASKS}/:taskId/status`, { projectId, taskId }),
-      );
-    } catch (error) {
-      console.log('🚀 ~ sendTaskToTeamLead: ~ error:', error);
     }
   },
   fetchTaskByTaskId: async (taskId: string) => {

@@ -6,13 +6,12 @@ import {
   CircleChevronDown,
   CircleChevronUp,
   ClipboardCheck,
-  Fingerprint,
   FolderOpen,
   IdCard,
-  KeyRound,
   ListTodo,
   LogOut,
   ShieldCheck,
+  UserRoundPlus,
   UsersRound,
 } from 'lucide-react';
 import renderWithAccessControl from '../common/access-control';
@@ -119,11 +118,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <h3 className="ml-4 text-sm font-semibold text-bodydark2">MENU</h3>
 
             <ul className="flex flex-col gap-1.5">
-              {/* <SidebarLinkGroup
-                activeCondition={
-                  pathname === '/' || pathname.includes('dashboard')
-                }
-              >
+              <SidebarLinkGroup activeCondition={pathname === '/'}>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
@@ -156,8 +151,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                               !open && 'hidden'
                             }`}
                           >
-                            <ul className="mt-4 mb-5.5 flex flex-col gap-2.5 pl-6">
-                              {renderWithAccessControl(
+                            <ul className="my-1 flex flex-col gap-2.5 pl-6">
+                              {/*  {renderWithAccessControl(
                                 <li>
                                   <NavLink
                                     to="/permissions"
@@ -192,15 +187,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                                 'READ',
                                 '*',
                               )}
+                                */}
                               {renderWithAccessControl(
                                 <li>
                                   <NavLink
                                     to="/user-roles"
-                                    className={({ isActive }) =>
-                                      'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-slate-800 hover:dark:text-white ' +
-                                      (isActive &&
-                                        '!text-slate-700 dark:!text-white')
-                                    }
+                                    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-500 hover:text-white dark:text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                                      pathname.includes('user-roles') &&
+                                      'bg-graydark dark:bg-meta-4'
+                                    }`}
                                   >
                                     <IdCard />
                                     User Roles
@@ -220,7 +215,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup> */}
+              </SidebarLinkGroup>
               {renderWithAccessControl(
                 <li>
                   <NavLink
@@ -268,10 +263,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>,
                 'APPROVALS',
-                'EDIT',
+                'UPDATE',
                 '*',
               )}
-              {/* {renderWithAccessControl(
+              {renderWithAccessControl(
                 <li>
                   <NavLink
                     to="/teams"
@@ -286,7 +281,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 'TEAMS',
                 'READ',
                 '*',
-              )} */}
+              )}
+              {renderWithAccessControl(
+                <li>
+                  <NavLink
+                    to="/users"
+                    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-500 hover:text-white dark:text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      pathname.includes('users') && 'bg-graydark dark:bg-meta-4'
+                    }`}
+                  >
+                    <UserRoundPlus />
+                    Users
+                  </NavLink>
+                </li>,
+                'USERS',
+                'CREATE',
+                '*',
+              )}
             </ul>
 
             {/* <ul className="mb-6 flex flex-col gap-1.5">

@@ -106,6 +106,11 @@ function StatusChangeEvent({ event }: { event: HistoryEvent }) {
           {toStatus}
         </span>
       </div>
+      {event?.details?.text && (
+        <div className="mt-2 px-2 py-1 rounded-md italic text-xs bg-slate-800">
+          "{event.details.text}"
+        </div>
+      )}
     </div>
   );
 }
