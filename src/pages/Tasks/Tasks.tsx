@@ -173,7 +173,7 @@ const Tasks = () => {
       type: 'element',
       render: (row: TaskType) => (
         <div className="flex gap-2">
-          {user?.userId === row.assignedToId && (
+          {user?.userId === row.assignedToId && row?.status !=="IN_REVIEW" &&(
             <button
               title="send task to review"
               onClick={() => {

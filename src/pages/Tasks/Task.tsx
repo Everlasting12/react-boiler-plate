@@ -165,7 +165,7 @@ const Task = () => {
               const isSelectOptionCompletedDisabled =
                 [RolesEnum.ARCHITECT, RolesEnum.DRAUGHTSMAN].includes(
                   authenticatedUserRoleId as RolesEnum,
-                ) && value == 'COMPLETED';
+                ) && ['COMPLETED', 'REJECTED', 'ON_HOLD'].includes(value);
 
               const isSelectOptionsDisabled =
                 [RolesEnum.ARCHITECT, RolesEnum.DRAUGHTSMAN].includes(
@@ -186,7 +186,7 @@ const Task = () => {
                 return;
               } else if (isSelectOptionCompletedDisabled) {
                 toast.error(
-                  `You don't have permission to mark task '${TaskStatus.COMPLETED}'`,
+                  `You don't have permission to mark task '${TaskStatus[value as keyof typeof TaskStatus]}'`,
                   {
                     position: 'top-center',
                     duration: 3000,
