@@ -112,8 +112,8 @@ const Task = () => {
   };
   return (
     <div className="w-full font-sans md:grid md:grid-cols-5 grow my-3 rounded-lg border border-slate-200 dark:border-slate-700">
-      <div className="p-3 md:col-span-3">
-        <div className="flex flex-col gap-3">
+      <div className="md:col-span-3">
+        <div className="p-3 flex flex-col gap-3">
           <ConvertEditable
             data={task?.drawingTitle}
             element={
@@ -123,12 +123,12 @@ const Task = () => {
             }
             onSave={handleTitleSave}
           />
-          <span className="text-sm">Description:</span>
+          <span className="text-xs">Description:</span>
           <div className="w-full p-5 rounded bg-slate-400/10">
             <ConvertEditable
               data={task?.description}
               element={
-                <pre className="font-sans text-slate-600 w-full text-pretty dark:text-slate-400 text-xs md:text-base break-words whitespace-break-spaces overflow-auto">
+                <pre className="font-sans text-slate-600 w-full text-pretty dark:text-slate-400 text-xs md:text-sm break-words whitespace-break-spaces overflow-auto">
                   {task?.description}
                 </pre>
               }
@@ -136,15 +136,15 @@ const Task = () => {
             />
           </div>
         </div>
-        <div className="mt-2">
-          <span className="text-sm">Comments</span>
+        <div className="border-t p-3 border-slate-200 dark:border-slate-700 mt-2">
+          <span className="text-xs">Comments</span>
           <div className="flex gap-2 items-center">
             <input
               value={taskComment}
               onChange={(e) => {
-                if (e?.target?.value) setTaskComment(e.target.value!);
+                setTaskComment(e.target.value!);
               }}
-              className="w-full px-3 py-2 rounded bg-slate-400/10 placeholder:text-sm"
+              className="w-full px-3 py-2 rounded bg-slate-400/10 placeholder:text-xs"
               placeholder="Add a comment..."
             />
             <button
@@ -186,7 +186,9 @@ const Task = () => {
                 return;
               } else if (isSelectOptionCompletedDisabled) {
                 toast.error(
-                  `You don't have permission to mark task '${TaskStatus[value as keyof typeof TaskStatus]}'`,
+                  `You don't have permission to mark task '${
+                    TaskStatus[value as keyof typeof TaskStatus]
+                  }'`,
                   {
                     position: 'top-center',
                     duration: 3000,
@@ -206,7 +208,7 @@ const Task = () => {
             }}
           >
             <SelectTrigger
-              className={`w-[180px] text-base font-medium focus:ring-0 border-0 ${TaskStatusColors[
+              className={`w-[180px] text-sm font-medium focus:ring-0 border-0 ${TaskStatusColors[
                 taskStatus as keyof typeof TaskStatus
               ]?.bg} ${TaskStatusColors[taskStatus as keyof typeof TaskStatus]
                 ?.text}`}
@@ -229,7 +231,10 @@ const Task = () => {
             </SelectContent>
           </Select>
 
-          <TaskMetaInformation task={task} />
+          <TaskMetaInformation
+            task={task}
+            performTaskAction={performTaskAction}
+          />
           <div className="border border-slate-300 dark:border-none dark:bg-slate-800 rounded-md p-3 flex flex-col gap-3 text-sm">
             <span className="text-slate-500 dark:text-slate-400">
               Created {dayjs(task?.createdAt).format('DD MMM YYYY')} at{' '}
@@ -311,8 +316,50 @@ import TaskStatusHistory from './TaskStatusHistory';
 import { useLoginStore } from '../../store/useLoginStore';
 import { ConvertEditable } from '../../my-components/ConvertEditable';
 import toast from 'react-hot-toast';
+import TaskLabelWrapper from './TaskLabelWrapper';
 
-export const TaskMetaInformation = ({ task }: { task: TaskType }) => {
+export const TaskMetaInformation = ({
+  task,
+  performTaskAction,
+}: {
+  task: TaskType;
+  performTaskAction: (
+    taskId: string,
+    projectId: string,
+    payload: object,
+  ) => void;
+}) => {
+  const { user, authenticatedUserRoleId } = useLoginStore();
+
+  const [taskPriority, setTaskPriority] = useState<keyof typeof TaskPriority>(
+    task?.priority as keyof typeof TaskPriority,
+  );
+  useEffect(() => {
+    if (task?.priority) {
+      setTaskPriority(task.priority as keyof typeof TaskPriority);
+    }
+  }, [task?.priority]);
+
+  const handlePriorityChange = (value: string) => {
+    const payload = {
+      priority: value,
+      action: {
+        eventType: TaskEvents.PRIORITY_CHANGE,
+        details: {
+          from: task.priority,
+          userId: user?.userId,
+          to: value,
+        },
+      },
+    };
+
+    performTaskAction(task.taskId!, task.projectId!, payload);
+  };
+
+  const dueDateTime = dayjs(task?.dueDate);
+  const now = dayjs(new Date().toISOString());
+  const isDelayed = now.isAfter(dueDateTime);
+  const delayHours = isDelayed ? now.diff(dueDateTime, 'hour') : 0;
   return (
     <Accordion
       type="single"
@@ -330,15 +377,52 @@ export const TaskMetaInformation = ({ task }: { task: TaskType }) => {
           <span>Priority</span>
 
           <div className="col-span-2">
-            <span
-              className={`px-4 py-1 text-xs rounded-xl font-medium ${TaskPriorityColors[
-                task?.priority as keyof typeof TaskPriority
-              ]?.bg} ${TaskPriorityColors[
-                task?.priority as keyof typeof TaskPriority
-              ]?.text}`}
+            <Select
+              value={taskPriority}
+              onValueChange={(value: keyof typeof TaskPriority) => {
+                const isSelectOptionsDisabled =
+                  [RolesEnum.ARCHITECT, RolesEnum.DRAUGHTSMAN].includes(
+                    authenticatedUserRoleId as RolesEnum,
+                  ) && task.createdById !== user?.userId;
+
+                if (isSelectOptionsDisabled) {
+                  toast.error(
+                    `You don't have permission to change task's priority to '${TaskPriority[value]}'`,
+                    {
+                      position: 'top-center',
+                      duration: 3000,
+                      className: 'bg-red-200 text-red-600 text-sm font-sans',
+                    },
+                  );
+                  return;
+                }
+
+                setTaskPriority(value);
+                value !== task.status && handlePriorityChange(value);
+              }}
             >
-              {TaskPriority[task?.priority as keyof typeof TaskPriority]}
-            </span>
+              <SelectTrigger
+                className={`w-[100px] text-xs h-7 font-medium focus:ring-0 border-0 ${TaskPriorityColors[
+                  taskPriority as keyof typeof TaskPriority
+                ]?.style}`}
+              >
+                <SelectValue placeholder="Select a Priority" className="p-0" />
+              </SelectTrigger>
+              <SelectContent className="border-0 p-0 bg-white dark:bg-slate-900 shadow-2xl">
+                <SelectGroup className="">
+                  <SelectLabel>Priority</SelectLabel>
+                  {Object.entries(TaskPriority).flatMap(([key, priority]) => (
+                    <SelectItem
+                      className="hover:bg-slate-200 rounded cursor-pointer focus:bg-slate-200"
+                      key={key}
+                      value={key}
+                    >
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
 
           <span>Project</span>
@@ -361,6 +445,16 @@ export const TaskMetaInformation = ({ task }: { task: TaskType }) => {
 
           <span>Reporter</span>
           <span className="col-span-2">{task?.createdBy?.name}</span>
+          {isDelayed && (
+            <>
+              <span>Delayed by</span>
+              <div className="col-span-2">
+                <span className=" text-red-500 text-xs py-0.5 px-2 rounded-md bg-red-100 inline">
+                  {delayHours} {delayHours > 1 ? 'hours' : 'hour'}
+                </span>
+              </div>
+            </>
+          )}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

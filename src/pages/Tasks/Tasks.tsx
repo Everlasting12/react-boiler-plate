@@ -13,11 +13,18 @@ import {
   ROLES,
   TaskEvents,
 } from '../../common/enums';
-import { Mail, Send } from 'lucide-react';
+import { BadgeInfo, Mail, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLoginStore } from '../../store/useLoginStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { getEmail } from '../../common/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../my-components/Tooltip';
+import TaskLabelWrapper from './TaskLabelWrapper';
 const Tasks = () => {
   const { authenticatedUserRoleId, user } = useLoginStore();
   const { fetchTasks, tasks, performTaskAction } = useTaskStore();
@@ -76,13 +83,19 @@ const Tasks = () => {
       label: 'Title',
       type: 'element',
       render: (row: TaskType) => (
-        <Link
-          title="view task details"
-          to={`/tasks/${row?.taskId}`}
-          className="underline decoration-blue-500 text-blue-500"
-        >
-          {row?.drawingTitle}
-        </Link>
+        <TaskLabelWrapper
+          linkComponent={
+            <Link
+              title="view task details"
+              to={`/tasks/${row?.taskId}`}
+              className="underline decoration-blue-500 text-blue-500"
+            >
+              {row?.drawingTitle}
+            </Link>
+          }
+          dueDate={row?.dueDate}
+          status={row?.status as keyof typeof TaskStatus}
+        />
       ),
     },
     // {
@@ -103,11 +116,9 @@ const Tasks = () => {
       type: 'text',
       render: (row) => (
         <span
-          className={`px-4 py-1 text-xs rounded-xl font-medium ${TaskPriorityColors[
+          className={`px-4 py-0.5 text-xs rounded-xl font-medium ${TaskPriorityColors[
             row?.priority as keyof typeof TaskPriority
-          ]?.bg} ${TaskPriorityColors[
-            row?.priority as keyof typeof TaskPriority
-          ]?.text}`}
+          ]?.style}`}
         >
           {TaskPriority[row?.priority as keyof typeof TaskPriority]}
         </span>
@@ -171,9 +182,38 @@ const Tasks = () => {
       key: 'Action',
       label: 'Action',
       type: 'element',
+      header: () => (
+        <div className="flex items-center gap-2">
+          Action
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <BadgeInfo size={14} />
+              </TooltipTrigger>
+              <TooltipContent className="bg-white dark:bg-slate-700 dark:text-white shadow-xl">
+                <ul className="">
+                  <li>
+                    <Mail size={14} className="inline mr-3" />
+                    <span>
+                      Once task is completed, you can send it to concern
+                      individual via email
+                    </span>
+                  </li>
+                  <li>
+                    <Send size={14} className="inline mr-3" />
+                    <span>
+                      Once task is done by assignee, they can send it for review
+                    </span>
+                  </li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      ),
       render: (row: TaskType) => (
         <div className="flex gap-2">
-          {user?.userId === row.assignedToId && row?.status !=="IN_REVIEW" &&(
+          {user?.userId === row.assignedToId && row?.status !== 'IN_REVIEW' && (
             <button
               title="send task to review"
               onClick={() => {

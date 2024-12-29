@@ -14,8 +14,14 @@ import {
   TaskStatusColors,
 } from '../../common/enums';
 import { Link } from 'react-router-dom';
-import { Mail } from 'lucide-react';
+import { BadgeInfo, Mail } from 'lucide-react';
 import { getEmail } from '../../common/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../my-components/Tooltip';
 
 const Approvals = () => {
   const { authenticatedUserRoleId, permissionEntities, user } = useLoginStore();
@@ -72,9 +78,7 @@ const Approvals = () => {
         <span
           className={`px-4 py-1 text-xs rounded-xl font-medium ${TaskPriorityColors[
             row?.priority as keyof typeof TaskPriority
-          ]?.bg} ${TaskPriorityColors[
-            row?.priority as keyof typeof TaskPriority
-          ]?.text}`}
+          ]?.style} `}
         >
           {TaskPriority[row?.priority as keyof typeof TaskPriority]}
         </span>
@@ -137,6 +141,29 @@ const Approvals = () => {
       key: 'Action',
       label: 'Action',
       type: 'element',
+      header: () => (
+        <div className="flex items-center gap-2">
+          Action
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <BadgeInfo size={14} />
+              </TooltipTrigger>
+              <TooltipContent className="bg-white dark:bg-slate-700 dark:text-white shadow-xl">
+                <ul className="">
+                  <li>
+                    <Mail size={14} className="inline mr-3" />
+                    <span>
+                      Once task is completed, you can send it to concern
+                      individual via email
+                    </span>
+                  </li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      ),
       render: (row: TaskType) => (
         <div className="flex gap-2">
           {row.status === 'COMPLETED' && (

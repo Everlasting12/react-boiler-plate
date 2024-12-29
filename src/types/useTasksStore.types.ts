@@ -34,6 +34,7 @@ export type Task = {
   createdBy?: CreatedBy;
   project?: Project;
   history?: HistoryEvent[];
+  dueDate: string;
 };
 
 export type AssignedTo = {

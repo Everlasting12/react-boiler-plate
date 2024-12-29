@@ -1,6 +1,12 @@
 import { ArrowRightCircle, MessageCircle } from 'lucide-react';
 import dayjs from 'dayjs';
-import { TaskEvents, TaskStatus, TaskStatusColors } from '../../common/enums';
+import {
+  TaskEvents,
+  TaskPriority,
+  TaskPriorityColors,
+  TaskStatus,
+  TaskStatusColors,
+} from '../../common/enums';
 import { HistoryEvent } from '../../types/useTasksStore.types';
 
 interface TaskStatusHistoryProps {
@@ -44,6 +50,8 @@ function getEventComponent(event: HistoryEvent) {
   switch (event.eventType) {
     case TaskEvents.STATUS_CHANGE:
       return <StatusChangeEvent event={event} />;
+    case TaskEvents.PRIORITY_CHANGE:
+      return <PriorityChangeEvent event={event} />;
     case TaskEvents.COMMENT:
       return <CommentEvent event={event} />;
     default:
@@ -53,6 +61,11 @@ function getEventComponent(event: HistoryEvent) {
 function getEventIcon(event: HistoryEvent) {
   switch (event.eventType) {
     case TaskEvents.STATUS_CHANGE:
+      return {
+        bg: 'bg-blue-500',
+        icon: <ArrowRightCircle className="w-4 h-4" />,
+      };
+    case TaskEvents.PRIORITY_CHANGE:
       return {
         bg: 'bg-blue-500',
         icon: <ArrowRightCircle className="w-4 h-4" />,
@@ -77,7 +90,7 @@ function StatusChangeEvent({ event }: { event: HistoryEvent }) {
         <p className="text-xs font-bold mb-1">
           Status changed {event?.updatedBy?.name ? 'by ' : ''}
           <span
-            className="bg-slate-200 dark:bg-slate-700 px-1 rounded-md cursor-pointer"
+            className="bg-slate-200 dark:bg-slate-950 px-1 text-black dark:text-white rounded-md cursor-pointer"
             title={event?.updatedBy?.email}
           >
             {event?.updatedBy?.name ? `@${event?.updatedBy?.name}` : ''}
@@ -90,7 +103,7 @@ function StatusChangeEvent({ event }: { event: HistoryEvent }) {
       </div>
       <div className="flex items-center space-x-2">
         <span
-          className={`px-2 py-0.5 rounded text-white text-sm ${
+          className={`px-2 py-0.5 rounded text-white text-xs ${
             TaskStatusColors[event.details.from as keyof typeof TaskStatus].bg
           }`}
         >
@@ -99,11 +112,62 @@ function StatusChangeEvent({ event }: { event: HistoryEvent }) {
         </span>
         <ArrowRightCircle className="w-4 h-4 text-gray-500" />
         <span
-          className={`px-2 py-0.5 rounded text-white text-sm ${
+          className={`px-2 py-0.5 rounded text-white text-xs ${
             TaskStatusColors[event.details.to as keyof typeof TaskStatus].bg
           }`}
         >
           {toStatus}
+        </span>
+      </div>
+      {event?.details?.text && (
+        <pre className="mt-2 text-xs italic bg-gray-100 rounded bg-slate-200/30 dark:bg-slate-500/30 p-2 break-words whitespace-break-spaces overflow-y-auto max-h-60 scrollbar">
+          "{event.details.text}"
+        </pre>
+      )}
+    </div>
+  );
+}
+function PriorityChangeEvent({ event }: { event: HistoryEvent }) {
+  const fromPriority =
+    TaskPriority[event.details.from as keyof typeof TaskPriority];
+
+  const toPriority =
+    TaskPriority[event.details.to as keyof typeof TaskPriority];
+
+  return (
+    <div className="font-sans">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs font-bold mb-1">
+          Priority changed {event?.updatedBy?.name ? 'by ' : ''}
+          <span
+            className="bg-slate-200 dark:bg-slate-950 px-1 text-black dark:text-white rounded-md cursor-pointer"
+            title={event?.updatedBy?.email}
+          >
+            {event?.updatedBy?.name ? `@${event?.updatedBy?.name}` : ''}
+          </span>
+        </p>
+        <p className="text-xs text-gray-500">
+          {dayjs(event.createdAt).format('DD MMM YYYY')} at{' '}
+          {dayjs(event.createdAt).format('hh:MM a')}
+        </p>
+      </div>
+      <div className="flex items-center space-x-2">
+        <span
+          className={`px-2 py-0.5 rounded text-xs ${
+            TaskPriorityColors[event.details.from as keyof typeof TaskPriority]
+              .style
+          }`}
+        >
+          {fromPriority}
+        </span>
+        <ArrowRightCircle className="w-4 h-4 text-gray-500" />
+        <span
+          className={`px-2 py-0.5 rounded text-xs ${
+            TaskPriorityColors[event.details.to as keyof typeof TaskPriority]
+              .style
+          }`}
+        >
+          {toPriority}
         </span>
       </div>
       {event?.details?.text && (
@@ -126,9 +190,9 @@ function CommentEvent({ event }: { event: HistoryEvent }) {
         </p>
       </div>
 
-      <p className="text-sm bg-gray-100 rounded bg-slate-200/30 dark:bg-slate-500/30 p-2">
+      <pre className="text-xs italic bg-gray-100 rounded bg-slate-200/30 dark:bg-slate-500/30 p-2 break-words whitespace-break-spaces overflow-y-auto max-h-60 scrollbar">
         {event.details.text}
-      </p>
+      </pre>
     </div>
   );
 }

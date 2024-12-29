@@ -14,6 +14,7 @@ export interface ColumnDef {
   key: string;
   label: string;
   type: ColumnType;
+  header?: () => JSX.Element;
   render?: (row: any) => JSX.Element;
 }
 
@@ -61,7 +62,7 @@ function Table<T>(props: TableType<T>) {
       <div className="overflow-auto max-h-[65vh] scrollbar">
         <table className="border-collapse w-full min-w-full">
           <thead className="border">
-            <tr className="sticky top-0 text-sm">
+            <tr className="sticky top-0 text-sm z-50">
               {columns?.map((column: ColumnDef, columnIndex: number, array) => (
                 <TableHeader
                   {...column}
@@ -127,7 +128,7 @@ export default Table;
 const TableHeader = (
   props: ColumnDef & { unique: string; columnIndex: number; lastIndex: number },
 ) => {
-  const { label, type, render, unique, columnIndex, lastIndex } = props;
+  const { label, header, unique, columnIndex, lastIndex } = props;
   return (
     <th
       key={unique}
@@ -139,7 +140,7 @@ const TableHeader = (
           : ''
       }`}
     >
-      <span className="">{label}</span>
+      {header ? header() : <span className="">{label}</span>}
     </th>
   );
 };

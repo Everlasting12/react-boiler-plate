@@ -74,18 +74,15 @@ export enum TaskPriority {
 export const TaskPriorityColors = {
   HIGH: {
     name: 'High',
-    text: 'text-red-500',
-    bg: 'border',
+    style: 'text-red-500 bg-red-100',
   },
   MEDIUM: {
     name: 'Medium',
-    text: 'text-yellow-600 dark:text-yellow-500',
-    bg: 'border',
+    style: 'text-yellow-500 dark:text-yellow-500 bg-yellow-100',
   },
   LOW: {
     name: 'Low',
-    text: 'text-green-500',
-    bg: 'border',
+    style: 'text-green-500 bg-green-100',
   },
 };
 
@@ -145,7 +142,6 @@ export function getStatusColor(status: TaskStatus): string {
       return 'bg-yellow-500';
     case TaskStatus.IN_PROGRESS:
       return 'bg-blue-500';
-    case TaskStatus.DONE:
     case TaskStatus.COMPLETED:
       return 'bg-green-500';
     case TaskStatus.ON_HOLD:
@@ -160,6 +156,8 @@ export function getStatusColor(status: TaskStatus): string {
 export enum TaskEvents {
   'STATUS_CHANGE' = 'STATUS_CHANGE',
   'COMMENT' = 'COMMENT',
+  'PRIORITY_CHANGE' = 'PRIORITY_CHANGE',
+  'ASSIGNEE_CHANGE' = 'ASSIGNEE_CHANGE',
 }
 
 export enum RolesEnum {
